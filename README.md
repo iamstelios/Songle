@@ -1,4 +1,7 @@
 # Songle
-#Software Engineering Large Practical
-#Stylianos (Stelios) Milisavljevic
-#s1509375
+
+Software Engineering Large Practical
+
+Stylianos (Stelios) Milisavljevic
+
+s1509375
