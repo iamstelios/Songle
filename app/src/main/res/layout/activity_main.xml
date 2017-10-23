@@ -20,9 +20,6 @@
 
     </android.support.design.widget.AppBarLayout>
 
-    <include layout="@layout/content_main"
-        android:id="@+id/include" />
-
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/start"
         android:layout_width="wrap_content"
@@ -31,5 +28,9 @@
         android:layout_margin="@dimen/fab_margin"
         app:backgroundTint="@color/colorPrimary"
         app:srcCompat="@android:drawable/ic_media_play" />
+
+    <include
+        android:id="@+id/include"
+        layout="@layout/content_main" />
 
 </android.support.design.widget.CoordinatorLayout>

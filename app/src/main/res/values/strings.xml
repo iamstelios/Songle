@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Songle</string>
     <string name="action_settings">Settings</string>
-    <string name="title_activity_maps">Map - Collect lyrics</string>
+    <string name="title_activity_maps">Map</string>
     <string name="title_activity_settings">Settings</string>
 
     <!-- Strings related to Settings -->
