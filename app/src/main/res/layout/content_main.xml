@@ -4,6 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/primary_light"
+    android:padding="16dp"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="com.iamstelios.songle.MainActivity"
     tools:showIn="@layout/activity_main">
@@ -12,13 +14,11 @@
         android:id="@+id/Title"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:fontFamily="monospace"
+        android:fontFamily="sans-serif"
         android:gravity="center_horizontal"
-        android:paddingLeft="2dp"
-        android:paddingRight="2dp"
         android:text="Test your music knowledge while getting fit"
         android:textAllCaps="false"
-        android:textColor="@color/common_google_signin_btn_text_light_pressed"
+        android:textColor="@color/common_google_signin_btn_text_dark_focused"
         android:textSize="20sp"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -32,30 +32,51 @@
         android:id="@+id/LogoTitle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/songle_name" />
 
-    <ImageButton
-        android:id="@+id/NewGameButton"
+
+    <LinearLayout
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
-        android:layout_marginTop="8dp"
-        android:contentDescription="New Game"
-        android:background="?attr/selectableItemBackground"
+        android:layout_height="0dp"
+        android:background="@color/colorPrimary"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/Title"
-        app:srcCompat="@drawable/new_game_button"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp" />
+        app:layout_constraintTop_toBottomOf="@+id/Title">
+
+        <ImageButton
+            android:id="@+id/NewGameButton"
+            style="@style/ButtonsMain"
+            android:contentDescription="New Game"
+            app:srcCompat="@drawable/new_game" />
+
+        <ImageButton
+            android:id="@+id/ContinueButton"
+            style="@style/ButtonsMain"
+            android:contentDescription="Continue"
+            app:srcCompat="@drawable/continue_game" />
+
+        <ImageButton
+            android:id="@+id/DifficultyButton"
+            style="@style/ButtonsMain"
+            android:contentDescription="Difficulty"
+            app:srcCompat="@drawable/difficulty" />
+
+        <ImageButton
+            android:id="@+id/UserButton"
+            style="@style/ButtonsMain"
+            android:contentDescription="User"
+            app:srcCompat="@drawable/user" />
+
+        <ImageButton
+            android:id="@+id/HighscoresButton"
+            style="@style/ButtonsMain"
+            android:contentDescription="Highscores"
+            app:srcCompat="@drawable/highscores" />
+    </LinearLayout>
 
 </android.support.constraint.ConstraintLayout>

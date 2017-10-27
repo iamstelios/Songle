@@ -12,6 +12,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -22,13 +23,15 @@ public class MainActivity extends AppCompatActivity {
 
     //private static final int REQUEST_PERMISSION_WRITE = 1001;
     //private boolean permissionGranted;
+    private static final String TAG = MainActivity.class.getSimpleName();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.i(TAG, "Main Activity started");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        //Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+       // setSupportActionBar(toolbar);
 
         FloatingActionButton start_button = (FloatingActionButton) findViewById(R.id.start);
         start_button.setOnClickListener(new View.OnClickListener() {
@@ -40,9 +43,12 @@ public class MainActivity extends AppCompatActivity {
         });
 
         ImageButton newGameButton = (ImageButton) findViewById(R.id.NewGameButton);
-        newGameButton.setOnClickListener(new View.OnClickListener(){
+        newGameButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                //Update the xml
+
+                //Load the Maps Activity
                 Intent intent = new Intent(MainActivity.this, MapsActivity.class);
                 startActivity(intent);
             }
@@ -74,6 +80,7 @@ public class MainActivity extends AppCompatActivity {
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             //Open Settings
+            Log.i(TAG,"Accessing Settings");
             Intent intent = new Intent(this, SettingsActivity.class);
             startActivity(intent);
             return true;
