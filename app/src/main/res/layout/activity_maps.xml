@@ -13,33 +13,75 @@
         android:layout_height="match_parent"
         tools:context="com.iamstelios.songle.MapsActivity" />
 
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/floatingActionButton"
+    <!--android.support.design.widget.FloatingActionButton
+        android:id="@+id/submitButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="top|left"
-        android:layout_margin="15dp"
+        android:layout_marginBottom="70dp"
+        android:layout_marginRight="10dp"
         android:clickable="true"
         app:backgroundTint="@color/colorPrimary"
-        app:elevation="15dp"
+        app:elevation="16dp"
         app:fabSize="mini"
         app:layout_anchor="@+id/map"
         app:layout_anchorGravity="bottom|right"
-        app:srcCompat="@android:drawable/ic_menu_myplaces" />
+        app:srcCompat="@android:drawable/ic_menu_myplaces" /-->
 
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/floatingActionButton2"
+    <!-- Use of FrameLayout to change the size (bigger) of the floating action button-->
+    <FrameLayout
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_gravity="top|left"
+        android:layout_marginBottom="70dp"
+        android:layout_marginRight="10dp"
+        app:layout_anchor="@+id/map"
+        app:layout_anchorGravity="bottom|right">
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/submitButton"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clickable="true"
+            app:backgroundTint="@color/colorPrimary"
+            app:elevation="0dp"
+            app:fabSize="mini"
+            app:srcCompat="@android:drawable/ic_menu_myplaces" />
+    </FrameLayout>
+
+    <!--android.support.design.widget.FloatingActionButton
+        android:id="@+id/lyricsButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="top|right"
-        android:layout_margin="15dp"
+        android:layout_marginBottom="70dp"
+        android:layout_marginLeft="10dp"
         android:clickable="true"
         app:backgroundTint="@color/colorPrimary"
         app:elevation="10dp"
         app:fabSize="mini"
         app:layout_anchor="@+id/map"
         app:layout_anchorGravity="bottom|left"
-        app:srcCompat="@android:drawable/checkbox_on_background" />
+        app:srcCompat="@android:drawable/checkbox_on_background" /-->
 
+    <FrameLayout
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_gravity="top|right"
+        android:layout_marginBottom="70dp"
+        android:layout_marginLeft="10dp"
+        app:layout_anchor="@+id/map"
+        app:layout_anchorGravity="bottom|left">
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/lyricsButton"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clickable="true"
+            app:backgroundTint="@color/colorPrimary"
+            app:elevation="0dp"
+            app:fabSize="mini"
+            app:srcCompat="@android:drawable/checkbox_on_background" />
+    </FrameLayout>
 
 </android.support.design.widget.CoordinatorLayout>

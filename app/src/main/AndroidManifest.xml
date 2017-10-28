@@ -43,8 +43,8 @@
         <activity
             android:name=".MapsActivity"
             android:label="@string/title_activity_maps"
-            android:theme="@style/AppTheme.NoActionBar"
-            android:screenOrientation="portrait">
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.iamstelios.songle.MainActivity" />
@@ -55,17 +55,28 @@
             android:parentActivityName=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MANAGE_NETWORK_USAGE" />
+
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
+
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.iamstelios.songle.MainActivity" />
         </activity>
 
-        <!--receiver
+        <!--
+            receiver
             android:name=".NetworkReceiver"
             android:enabled="true"
-            android:exported="false"></receiver-->
+            android:exported="false"></receiver
+        -->
+        <activity android:name=".lyricsActivity"
+            android:screenOrientation="portrait"
+            android:label="Lyrics Found">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.iamstelios.songle.MapsActivity" />
+        </activity>
     </application>
 
 </manifest>

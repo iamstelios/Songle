@@ -1,6 +1,7 @@
 package com.iamstelios.songle;
 
 import android.Manifest;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -10,6 +11,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -19,19 +21,25 @@ import android.view.MenuItem;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
+import static com.iamstelios.songle.R.drawable.difficulty;
+
 public class MainActivity extends AppCompatActivity {
 
     //private static final int REQUEST_PERMISSION_WRITE = 1001;
     //private boolean permissionGranted;
     private static final String TAG = MainActivity.class.getSimpleName();
-
+    public static final String DIFFICULTY_KEY = "difficulty_key";
+    //Used to see if a dialog is canceled
+    private boolean canceled;
+    //Used to determine the difficulty when starting a new game
+    private String difficulty;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.i(TAG, "Main Activity started");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         //Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-       // setSupportActionBar(toolbar);
+        // setSupportActionBar(toolbar);
 
         FloatingActionButton start_button = (FloatingActionButton) findViewById(R.id.start);
         start_button.setOnClickListener(new View.OnClickListener() {
@@ -46,11 +54,32 @@ public class MainActivity extends AppCompatActivity {
         newGameButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //Update the xml
+                canceled = false;
+                //Using an Alert Dialog to choose difficulty
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                //Set the dialog characteristics
+                builder.setTitle(R.string.dialog_title)
+                        .setItems(R.array.difficulties, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                difficulty = String.valueOf(which + 1);
+                                //TODO: SAVE the difficulty for continuing
 
-                //Load the Maps Activity
-                Intent intent = new Intent(MainActivity.this, MapsActivity.class);
-                startActivity(intent);
+                                //Load the Maps Activity
+                                Intent intent = new Intent(MainActivity.this, MapsActivity.class);
+                                intent.putExtra(DIFFICULTY_KEY, difficulty);
+                                startActivity(intent);
+                            }
+                        })
+                        .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener(){
+                            @Override
+                            public void onClick(DialogInterface dialog, int id) {
+                                //canceled=true;
+                            }
+                        });
+                //Get the AlertDialog from create()
+                AlertDialog dialog = builder.create();
+                dialog.show();
             }
         });
         /*
@@ -80,7 +109,7 @@ public class MainActivity extends AppCompatActivity {
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             //Open Settings
-            Log.i(TAG,"Accessing Settings");
+            Log.i(TAG, "Accessing Settings");
             Intent intent = new Intent(this, SettingsActivity.class);
             startActivity(intent);
             return true;

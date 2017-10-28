@@ -57,8 +57,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private List<Song> songList;
     private final String KML_URL = "http://www.inf.ed.ac.uk/teaching/courses/selp/data/songs/%s/map%s.kml";
 
-    //TODO make sure scale is 1.75
-    private final double SCALE = 1.75;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,7 +72,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         //Download the Placemark map
         String songNumber = "01";
-        String difficulty = "5";
+        String difficulty = getIntent().getExtras().getString(MainActivity.DIFFICULTY_KEY);
+        Log.i(TAG,"Song Number: "+songNumber+" Difficulty: "+difficulty);
+        //Toast.makeText(this, "Difficulty: " +
+        //        getResources().getStringArray(R.array.difficulties)[Integer.parseInt(difficulty)-1],
+        //        Toast.LENGTH_SHORT).show();
         new DownloadPlacemarksTask().execute(String.format(KML_URL,songNumber,difficulty));
 
         // Create an instance of GoogleAPIClient.
@@ -84,6 +86,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     .addOnConnectionFailedListener(this)
                     .addApi(LocationServices.API).build();
         }
+        Log.i(TAG,"Map Created");
     }
 
     @Override
@@ -591,6 +594,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                     .icon(BitmapDescriptorFactory.fromResource(id)));
                     //TODO: SAVE MARKERS FOR LATER USE
                 }
+                Toast.makeText(MapsActivity.this, "Map Loaded Successfully", Toast.LENGTH_SHORT).show();
                 Log.e(TAG,"Placemarks successfully added to the map");
             }else{
                 Log.e(TAG,"Placemarks not loaded!");
