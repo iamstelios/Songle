@@ -1,6 +1,7 @@
 package com.iamstelios.songle;
 
 import android.Manifest;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.location.Location;
@@ -70,13 +71,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //Download the song list
         new DownloadSongsTask().execute(SONGS_XML_URL);
 
-        //Download the Placemark map
-        String songNumber = "01";
-        String difficulty = getIntent().getExtras().getString(MainActivity.DIFFICULTY_KEY);
+        //Retrieve the user preferences
+        SharedPreferences prefs = getSharedPreferences(MainActivity.USER_PREFS,MODE_PRIVATE);
+        String difficulty = prefs.getString(MainActivity.DIFFICULTY_KEY,"1");
+        String songNumber = prefs.getString(MainActivity.SONG_KEY,"01");
+        //String difficulty = getIntent().getExtras().getString(MainActivity.DIFFICULTY_KEY);
         Log.i(TAG,"Song Number: "+songNumber+" Difficulty: "+difficulty);
         //Toast.makeText(this, "Difficulty: " +
         //        getResources().getStringArray(R.array.difficulties)[Integer.parseInt(difficulty)-1],
         //        Toast.LENGTH_SHORT).show();
+
+        //Download the Placemark map
         new DownloadPlacemarksTask().execute(String.format(KML_URL,songNumber,difficulty));
 
         // Create an instance of GoogleAPIClient.
@@ -587,14 +592,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         protected void onPostExecute(List<Placemark> result) {
             if (result != null) {
                 for (Placemark pl : result) {
-                    int id = getResources().getIdentifier("rsz_"+pl.description, "drawable",
+                    int id = getResources().getIdentifier(pl.description, "drawable",
                             getPackageName());
                     mMap.addMarker(new MarkerOptions().position(
                             new LatLng(pl.latitude, pl.longitude)).title(pl.description).visible(true)
                                     .icon(BitmapDescriptorFactory.fromResource(id)));
                     //TODO: SAVE MARKERS FOR LATER USE
                 }
-                Toast.makeText(MapsActivity.this, "Map Loaded Successfully", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(MapsActivity.this, "Map Loaded Successfully", Toast.LENGTH_SHORT).show();
                 Log.e(TAG,"Placemarks successfully added to the map");
             }else{
                 Log.e(TAG,"Placemarks not loaded!");

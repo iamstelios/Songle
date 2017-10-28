@@ -1,19 +1,13 @@
 package com.iamstelios.songle;
 
-import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageManager;
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.Environment;
-import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.view.Menu;
@@ -21,18 +15,61 @@ import android.view.MenuItem;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
-import static com.iamstelios.songle.R.drawable.difficulty;
-
 public class MainActivity extends AppCompatActivity {
 
     //private static final int REQUEST_PERMISSION_WRITE = 1001;
     //private boolean permissionGranted;
     private static final String TAG = MainActivity.class.getSimpleName();
+
+    //Used as the keys to the user preferences
+    public static final String USER_PREFS = "user_preferences";
+    public static final String SONG_KEY = "song_key";
     public static final String DIFFICULTY_KEY = "difficulty_key";
-    //Used to see if a dialog is canceled
-    private boolean canceled;
+
     //Used to determine the difficulty when starting a new game
     private String difficulty;
+
+    //Dialog for choosing difficulty
+    private void chooseDifficulty() {
+        //Using an Alert Dialog to choose difficulty
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        //Set the dialog characteristics
+        builder.setTitle(R.string.dialog_difficulty)
+                .setItems(R.array.difficulties, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        difficulty = String.valueOf(which + 1);
+                        SharedPreferences.Editor editor = getSharedPreferences(USER_PREFS, MODE_PRIVATE).edit();
+                        editor.putString(DIFFICULTY_KEY, difficulty);
+                        //Starting for the first song if it's a new game
+                        editor.putString(SONG_KEY, "01");
+                        //TODO: SET THE LYRICS FOUND TO NULL WHEN IMPLEMENTED
+                        editor.apply();
+                        Toast.makeText(MainActivity.this, R.string.new_game_toast, Toast.LENGTH_SHORT).show();
+                        Log.i(TAG, "Started a new game");
+                        //Load the Maps Activity
+                        Intent intent = new Intent(MainActivity.this, MapsActivity.class);
+                        //intent.putExtra(DIFFICULTY_KEY, difficulty);
+                        startActivity(intent);
+                    }
+                })
+                .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int id) {
+                        //DO NOTHING
+                    }
+                });
+        //Get the AlertDialog from create()
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
+    //Check if user has progress stored by checking if difficulty is stored
+    private boolean hasProgress(){
+        SharedPreferences prefs = getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE);
+        return prefs.contains(DIFFICULTY_KEY);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.i(TAG, "Main Activity started");
@@ -41,6 +78,15 @@ public class MainActivity extends AppCompatActivity {
         //Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         // setSupportActionBar(toolbar);
 
+        //Hide continue button if no progress
+        View continueButton = findViewById(R.id.ContinueButton);
+        if (!hasProgress()) {
+            continueButton.setVisibility(View.GONE);
+        } else {
+            continueButton.setVisibility(View.VISIBLE);
+        }
+
+        /*
         FloatingActionButton start_button = (FloatingActionButton) findViewById(R.id.start);
         start_button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -49,37 +95,49 @@ public class MainActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
-
+        */
+        
         ImageButton newGameButton = (ImageButton) findViewById(R.id.NewGameButton);
         newGameButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                canceled = false;
-                //Using an Alert Dialog to choose difficulty
-                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                //Set the dialog characteristics
-                builder.setTitle(R.string.dialog_title)
-                        .setItems(R.array.difficulties, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                difficulty = String.valueOf(which + 1);
-                                //TODO: SAVE the difficulty for continuing
+                if (hasProgress()) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                    builder.setMessage(R.string.dialog_new_game)
+                            .setTitle(R.string.dialog_new_game_title);
+                    builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            // User clicked OK button
+                            chooseDifficulty();
+                        }
+                    });
+                    builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            // User cancelled the dialog and doesn't want to lose progress
+                        }
+                    });
+                    //Get the AlertDialog from create()
+                    AlertDialog dialog = builder.create();
+                    dialog.show();
+                } else {
+                    //No other progress so starting a new game won't cause problems
+                    chooseDifficulty();
+                }
 
-                                //Load the Maps Activity
-                                Intent intent = new Intent(MainActivity.this, MapsActivity.class);
-                                intent.putExtra(DIFFICULTY_KEY, difficulty);
-                                startActivity(intent);
-                            }
-                        })
-                        .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener(){
-                            @Override
-                            public void onClick(DialogInterface dialog, int id) {
-                                //canceled=true;
-                            }
-                        });
-                //Get the AlertDialog from create()
-                AlertDialog dialog = builder.create();
-                dialog.show();
+            }
+        });
+        continueButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //Check if the user already has progress by checking if he has a difficulty set
+                if (hasProgress()) {
+                    Toast.makeText(MainActivity.this, R.string.continue_toast, Toast.LENGTH_SHORT).show();
+                    //Load the Maps Activity
+                    Intent intent = new Intent(MainActivity.this, MapsActivity.class);
+                    startActivity(intent);
+                }else{
+                    Log.e(TAG,"User pressed continue button while having no progress");
+                }
             }
         });
         /*
@@ -89,6 +147,18 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         */
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        //Update the continue button visibility if progress has started
+        View continueButton = findViewById(R.id.ContinueButton);
+        if (!hasProgress()) {
+            continueButton.setVisibility(View.GONE);
+        } else {
+            continueButton.setVisibility(View.VISIBLE);
+        }
     }
 
 
