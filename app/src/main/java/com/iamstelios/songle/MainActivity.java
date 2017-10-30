@@ -4,8 +4,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -14,6 +12,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ImageButton;
 import android.widget.Toast;
+
+import java.util.HashSet;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -25,6 +25,10 @@ public class MainActivity extends AppCompatActivity {
     public static final String USER_PREFS = "user_preferences";
     public static final String SONG_KEY = "song_key";
     public static final String DIFFICULTY_KEY = "difficulty_key";
+    public static final String LYRICS_FOUND_KEY = "lyrics_found_key";
+    public static final String POINTS_KEY = "points_key";
+
+    public static int STARTING_POINTS = 500;
 
     //Used to determine the difficulty when starting a new game
     private String difficulty;
@@ -42,8 +46,10 @@ public class MainActivity extends AppCompatActivity {
                         SharedPreferences.Editor editor = getSharedPreferences(USER_PREFS, MODE_PRIVATE).edit();
                         editor.putString(DIFFICULTY_KEY, difficulty);
                         //Starting for the first song if it's a new game
-                        editor.putString(SONG_KEY, "01");
-                        //TODO: SET THE LYRICS FOUND TO NULL WHEN IMPLEMENTED
+                        editor.putString(SONG_KEY, getString(R.string.first_song_number));
+                        //Set the lyrics found to empty
+                        editor.putStringSet(LYRICS_FOUND_KEY,new HashSet<String>());
+                        editor.putInt(POINTS_KEY,STARTING_POINTS);
                         editor.apply();
                         Toast.makeText(MainActivity.this, R.string.new_game_toast, Toast.LENGTH_SHORT).show();
                         Log.i(TAG, "Started a new game");
@@ -57,6 +63,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int id) {
                         //DO NOTHING
+                        Log.i(TAG,"User canceled selecting the difficulty");
                     }
                 });
         //Get the AlertDialog from create()
@@ -96,14 +103,14 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         */
-        
+
         ImageButton newGameButton = (ImageButton) findViewById(R.id.NewGameButton);
         newGameButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (hasProgress()) {
                     AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                    builder.setMessage(R.string.dialog_new_game)
+                    builder.setMessage(R.string.dialog_new_game_message)
                             .setTitle(R.string.dialog_new_game_title);
                     builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
@@ -114,6 +121,7 @@ public class MainActivity extends AppCompatActivity {
                     builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
                             // User cancelled the dialog and doesn't want to lose progress
+                            Log.i(TAG,"User canceled selecting new game");
                         }
                     });
                     //Get the AlertDialog from create()
@@ -152,6 +160,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
+        //TODO MAKE THIS A METHOD AND REMOVE DUPLICATE CODE
         //Update the continue button visibility if progress has started
         View continueButton = findViewById(R.id.ContinueButton);
         if (!hasProgress()) {

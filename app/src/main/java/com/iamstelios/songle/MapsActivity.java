@@ -1,17 +1,28 @@
 package com.iamstelios.songle;
 
 import android.Manifest;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.location.Location;
 import android.os.AsyncTask;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
+import android.text.InputType;
 import android.util.Log;
 import android.util.Xml;
+import android.view.Gravity;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -26,6 +37,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.xmlpull.v1.XmlPullParser;
@@ -33,31 +45,162 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Array;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Scanner;
+import java.util.Set;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
-        LocationListener {
-    //TODO: ADD other TAGs and Logs or remove from here
+        LocationListener, GoogleMap.OnMarkerClickListener {
     private static final String TAG = MapsActivity.class.getSimpleName();
+    //TODO Callibrate distance
+    private static final float COLLECTION_DISTANCE_MAXIMUM = 20;
+
     private GoogleMap mMap;
 
     private GoogleApiClient mGoogleApiClient;
     private final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
+    //TODO: CHECK WHAT HAPPENS WHEN I DONT HAVE PERMISSIONS AND CHANGE ACCORDINGLY
     private boolean mLocationPermissionGranted = false;
     private Location mLastLocation;
+    private final LatLng GEORGE_SQUARE_LATLNG = new LatLng(55.944251, -3.189111);
 
     private final String SONGS_XML_URL = "http://www.inf.ed.ac.uk/teaching/courses/selp/data/songs/songs.xml";
     private List<Song> songList;
+    private List<Placemark> placemarkList;
+    private Set<String> lyricsFound;
+    private int points;
+    private String difficulty;
+    private String songNumber;
     private final String KML_URL = "http://www.inf.ed.ac.uk/teaching/courses/selp/data/songs/%s/map%s.kml";
+    private ArrayList<String[]> allWords;
+    private final String WORDS_URL = "http://www.inf.ed.ac.uk/teaching/courses/selp/data/songs/%s/words.txt";
+    public static final String WORDS_FOUND_KEY = "words_found_key";
 
+    //Used to calculate how many points to deduct when a lyric is revealed
+    private static final Map<String, Integer> pointsToDeduct = new HashMap<String, Integer>() {
+        {
+            put("veryinteresting", 400);
+            put("interesting", 200);
+            put("notboring", 100);
+            put("boring", 50);
+            put("unclassified", 500);
+        }
+    };
+
+    //Used to calculate how many points to add when a lyric is collected
+    private static final Map<String, Integer> pointsToScore = new HashMap<String, Integer>() {
+        {
+            put("veryinteresting", 50);
+            put("interesting", 40);
+            put("notboring", 25);
+            put("boring", 50);
+            put("unclassified", 200);
+        }
+    };
+
+    //Return the song given the song's number
+    private Song getSong(String songNumber) {
+        try {
+            for (Song song : songList) {
+                if (song.number.equals(songNumber)) return song;
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Tried to access song list when not loaded!");
+        }
+        return null;
+    }
+
+    //Update the screen showing the score and save the score in the preferences
+    private void updateScore(int points) {
+        TextView scoreText = (TextView) findViewById(R.id.scoreText);
+        scoreText.setText(String.valueOf(points));
+        SharedPreferences.Editor editor = getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE).edit();
+        editor.putInt(MainActivity.POINTS_KEY, points);
+        editor.apply();
+    }
+
+    //Add a lyric and update the lyrics found in the preferences
+    private void addToLyricsFound(String lyric) {
+        lyricsFound.add(lyric);
+        SharedPreferences.Editor editor = getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE).edit();
+        editor.putStringSet(MainActivity.LYRICS_FOUND_KEY, lyricsFound);
+        editor.apply();
+    }
+
+
+    //Takes as a parameter the current song and progresses the game to the next song
+    private void progressSong(Song song) {
+        int currentSongNum = Integer.parseInt(song.number);
+        //TODO: Make a test about this case
+        SharedPreferences.Editor editor = getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE).edit();
+        //Check if all the songs have been guesses
+        if (currentSongNum >= songList.size()) {
+            Log.i(TAG, "User completed the game!");
+            AlertDialog.Builder builder = new AlertDialog.Builder(MapsActivity.this);
+            builder.setMessage(R.string.dialog_complete_message)
+                    //TODO Add calories and distance walked
+                    .setTitle(R.string.dialog_complete_title);
+            builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    // User clicked OK button
+                    //Do Nothing
+                }
+            });
+            AlertDialog dialog = builder.create();
+            dialog.show();
+
+            editor.remove(MainActivity.LYRICS_FOUND_KEY);
+            editor.remove(MainActivity.DIFFICULTY_KEY);
+            editor.remove(MainActivity.POINTS_KEY);
+            editor.remove(MainActivity.SONG_KEY);
+            //Commit changes because we want to be sure the continue button
+            // will be not be present in main activity
+            editor.commit();
+
+            Intent intent = new Intent(MapsActivity.this, MainActivity.class);
+            startActivity(intent);
+            //TODO CHECK IF RETURN NEEDED
+            return;
+        }
+        Toast.makeText(this, "Congrats! You've progressed to the next song!", Toast.LENGTH_LONG).show();
+        Log.i(TAG, "User guess right and goes to the next song");
+        //Change the song number
+        songNumber = String.format(Locale.ENGLISH, "%02d", currentSongNum + 1);
+        editor.putString(MainActivity.SONG_KEY, songNumber);
+        //Reset the lyrics found
+        lyricsFound = new HashSet<String>();
+        editor.putStringSet(MainActivity.LYRICS_FOUND_KEY, lyricsFound);
+        editor.apply();
+        //Add the points to the player score
+        points += 500;
+        updateScore(points);
+
+        //Update the Placemark map for the new song
+        new DownloadPlacemarksTask().execute(String.format(KML_URL, songNumber, difficulty));
+        Log.i(TAG, "Map Updated with new Song");
+        //Download the text for the new song
+        new DownloadLyricsTask().execute(String.format(WORDS_URL, songNumber));
+    }
+
+    //Return a placemark of the matching position otherwise null
+    private Placemark placemarkFromLatLng(LatLng position) {
+        for (Placemark pl : placemarkList) {
+            if (pl.latitude == position.latitude && pl.longitude == position.longitude) {
+                return pl;
+            }
+        }
+        Log.e(TAG, "Position of marker doesn't match any placemarks");
+        return null;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,22 +211,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        //Download the song list
-        new DownloadSongsTask().execute(SONGS_XML_URL);
-
-        //Retrieve the user preferences
-        SharedPreferences prefs = getSharedPreferences(MainActivity.USER_PREFS,MODE_PRIVATE);
-        String difficulty = prefs.getString(MainActivity.DIFFICULTY_KEY,"1");
-        String songNumber = prefs.getString(MainActivity.SONG_KEY,"01");
-        //String difficulty = getIntent().getExtras().getString(MainActivity.DIFFICULTY_KEY);
-        Log.i(TAG,"Song Number: "+songNumber+" Difficulty: "+difficulty);
-        //Toast.makeText(this, "Difficulty: " +
-        //        getResources().getStringArray(R.array.difficulties)[Integer.parseInt(difficulty)-1],
-        //        Toast.LENGTH_SHORT).show();
-
-        //Download the Placemark map
-        new DownloadPlacemarksTask().execute(String.format(KML_URL,songNumber,difficulty));
-
         // Create an instance of GoogleAPIClient.
         if (mGoogleApiClient == null) {
             mGoogleApiClient = new GoogleApiClient.Builder(this)
@@ -91,7 +218,92 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     .addOnConnectionFailedListener(this)
                     .addApi(LocationServices.API).build();
         }
-        Log.i(TAG,"Map Created");
+        Log.i(TAG, "Map Created");
+        //Download the song list
+        new DownloadSongsTask().execute(SONGS_XML_URL);
+        //Retrieve the user preferences and stats
+        SharedPreferences prefs = getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE);
+        difficulty = prefs.getString(MainActivity.DIFFICULTY_KEY, getString(R.string.difficulty_easy));
+        songNumber = prefs.getString(MainActivity.SONG_KEY, getString(R.string.first_song_number));
+        lyricsFound = prefs.getStringSet(MainActivity.LYRICS_FOUND_KEY, new HashSet<String>());
+        points = prefs.getInt(MainActivity.POINTS_KEY, MainActivity.STARTING_POINTS);
+        updateScore(points);
+        //String difficulty = getIntent().getExtras().getString(MainActivity.DIFFICULTY_KEY);
+        Log.i(TAG, "Song Number: " + songNumber + " Difficulty: " + difficulty);
+        //Toast.makeText(this, "Difficulty: " +
+        //        getResources().getStringArray(R.array.difficulties)[Integer.parseInt(difficulty)-1],
+        //        Toast.LENGTH_SHORT).show();
+
+        //Download the Placemark map
+        new DownloadPlacemarksTask().execute(String.format(KML_URL, songNumber, difficulty));
+        //Download the text of the song
+        new DownloadLyricsTask().execute(String.format(WORDS_URL, songNumber));
+
+        FloatingActionButton submit_button = (FloatingActionButton) findViewById(R.id.submitButton);
+        submit_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                final Song song = getSong(songNumber);
+                if (song == null) {
+                    Toast.makeText(MapsActivity.this,
+                            "Songs not loaded. Go back and check your connection.",
+                            Toast.LENGTH_SHORT).show();
+                } else {
+                    //Show a dialog that asks the user if he wants to submit the song
+                    final AlertDialog.Builder builder = new AlertDialog.Builder(MapsActivity.this);
+                    //Set the message and title of the dialog
+                    builder.setMessage(R.string.dialog_submit_message)
+                            .setTitle(R.string.dialog_submit_title);
+                    // Set up the input
+                    final EditText input = new EditText(MapsActivity.this);
+                    // Setting up the input for the submission
+                    input.setInputType(InputType.TYPE_CLASS_TEXT);
+
+                    builder.setView(input);
+                    // Setting up the submission and cancellation buttons
+                    builder.setPositiveButton(R.string.submit, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            //String that saves the guess
+                            String submission = input.getText().toString();
+                            Log.i(TAG, "User submitted song: " + submission);
+                            if (submission.equalsIgnoreCase(song.title)) {
+                                //Correct guess
+                                progressSong(song);
+                            } else {
+                                //Wrong guess
+                                points -= 10;
+                                updateScore(points);
+                                Toast.makeText(MapsActivity.this, "Wrong Song! Try Again :)", Toast.LENGTH_SHORT).show();
+                                Log.i(TAG, "User guessed the wrong song.");
+                            }
+                        }
+                    });
+                    builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            //Do nothing
+                            Log.i(TAG, "User cancelled song submission");
+                        }
+                    });
+                    AlertDialog dialog = builder.create();
+                    dialog.show();
+                }
+
+            }
+        });
+
+        //Go to lyrics floating action button
+        FloatingActionButton lyrics_button = (FloatingActionButton) findViewById(R.id.lyricsButton);
+        lyrics_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ArrayList<String> wordsFound = findWordsFound(lyricsFound);
+                Intent intent = new Intent(MapsActivity.this, LyricsActivity.class);
+                intent.putStringArrayListExtra(WORDS_FOUND_KEY, wordsFound);
+                startActivity(intent);
+            }
+        });
     }
 
     @Override
@@ -152,7 +364,94 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         String.valueOf(current.getLatitude()) + "," +
                         String.valueOf(current.getLongitude()) + ")"
         );
+        mLastLocation = current;
+
         //TODO: Do something with current location
+        //Eg. follow the player
+        /*
+        //New location of player
+        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+        //Move camera
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 17));
+        mMap.getUiSettings().setZoomControlsEnabled(false);
+        mMap.getUiSettings().setScrollGesturesEnabled(false);
+        */
+    }
+
+    public boolean onMarkerClick(final Marker marker) {
+
+        LatLng markerPosition = marker.getPosition();
+        float[] results = new float[3];
+        if (mLastLocation == null) {
+            Toast.makeText(this, "You must open location services and track your location first! (Upper right corner)", Toast.LENGTH_LONG).show();
+            Log.e(TAG, "Player must open track location before accessing markers");
+            return true;
+        }
+        Location.distanceBetween(mLastLocation.getLatitude(), mLastLocation.getLongitude(),
+                markerPosition.latitude, markerPosition.longitude, results);
+        final float distance = results[0];
+        final Placemark lyricSelected = placemarkFromLatLng(markerPosition);
+        final String lyricName = lyricSelected.name;
+        final String lyricClassification = lyricSelected.description;
+        Log.i(TAG, "Distance between player and lyric " + lyricName + " selected is approximately"
+                + distance + " meters");
+
+        //Show a dialog that asks the user if he wants to collect or reveal the lyric
+        AlertDialog.Builder builder = new AlertDialog.Builder(MapsActivity.this);
+        //Set the message and title of the dialog
+        builder.setMessage(R.string.dialog_lyric_message)
+                .setTitle(R.string.dialog_lyric_title);
+        //Notice Neutral is clicking collect, negative is revealing and positive is canceling
+        builder.setNeutralButton(R.string.collect, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                //User wants to collect lyric
+                if (distance <= COLLECTION_DISTANCE_MAXIMUM) {
+                    addToLyricsFound(lyricName);
+                    points += pointsToScore.get(lyricClassification);
+                    updateScore(points);
+                    Toast.makeText(MapsActivity.this, "Congratulations! You've collected: " + lyricToWord(lyricName), Toast.LENGTH_LONG).show();
+                    Log.i(TAG, "User collected lyric " + lyricName + " and scored " +
+                            pointsToScore.get(lyricClassification) + " points.");
+                    marker.remove();
+                } else {
+                    Toast.makeText(MapsActivity.this,
+                            "You are too far away! Get closer to the lyric.",
+                            Toast.LENGTH_LONG).show();
+                    Log.i(TAG, "User too far away to collect");
+                }
+            }
+        });
+
+        //TODO CHECK WHY IT R.string.reveal DOESNT WORK
+        //String revealMessage = R.string.reveal + "(-" + pointsToDeduct.get(lyricClassification) + ")";
+        String revealMessage = "Reveal(-" + pointsToDeduct.get(lyricClassification) + ")";
+        builder.setNegativeButton(revealMessage, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                //User wants to reveal lyric
+                addToLyricsFound(lyricName);
+                points -= pointsToDeduct.get(lyricClassification);
+                updateScore(points);
+                //TODO add message with the actual lyric
+                Toast.makeText(MapsActivity.this, "Yay! You've revealed: " + lyricToWord(lyricName), Toast.LENGTH_LONG).show();
+                Log.i(TAG, "User reveal lyric " + lyricName + " and deducted " +
+                        pointsToDeduct.get(lyricClassification) + " points.");
+                marker.remove();
+            }
+        });
+
+        builder.setPositiveButton(R.string.cancel, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                // User cancelled the dialog
+                //DO NOTHING
+                Log.i(TAG, "User canceled selecting the lyric");
+            }
+        });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+
+        //TODO: CHECK difference of return true and false
+        return true;
     }
 
     @Override
@@ -205,8 +504,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
 
         //Map to load in George Square by default
-        LatLng georgeSquare = new LatLng(55.944251, -3.189111);
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(georgeSquare, 17));
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(GEORGE_SQUARE_LATLNG, 17));
 
         try {
             // Visualise current position with a small blue circle
@@ -216,9 +514,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
         // Add ``My location'' button to the user interface
         mMap.getUiSettings().setMyLocationButtonEnabled(true);
+        mMap.setOnMarkerClickListener(this);
 
     }
 
+    /*
+    @Override
+    public void onPointerCaptureChanged(boolean hasCapture) {
+
+    }
+    */
     //Class for the Songs
     public static class Song {
         public final String number;
@@ -410,7 +715,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         @Override
         protected void onPostExecute(List<Song> result) {
-            Log.i(TAG,"DownloadSongsTask finished");
+            Log.i(TAG, "DownloadSongsTask finished");
             songList = result;
         }
     }
@@ -464,7 +769,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return entries;
     }
 
-    private List<Placemark> readDocument(XmlPullParser parser)throws
+    private List<Placemark> readDocument(XmlPullParser parser) throws
             XmlPullParserException, IOException {
         parser.require(XmlPullParser.START_TAG, ns, "Document");
         List<Placemark> entries = new ArrayList<Placemark>();
@@ -505,8 +810,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     String[] coordinates = point.split(",");
                     latitude = Double.parseDouble(coordinates[1]);
                     longitude = Double.parseDouble(coordinates[0]);
-                }catch (NullPointerException e){
-                    Log.e(TAG,"The xml provided is incorrectly structured");
+                } catch (NullPointerException e) {
+                    Log.e(TAG, "The xml provided is incorrectly structured");
                 }
             } else {
                 skip(parser);
@@ -514,6 +819,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
         return new Placemark(name, description, latitude, longitude);
     }
+
     //Reading the point of a placemark
     private String readPoint(XmlPullParser parser) throws IOException,
             XmlPullParserException {
@@ -525,7 +831,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             String name = parser.getName();
             if (name.equals("coordinates")) {
                 coordinates = readCoordinates(parser);
-            }else {
+            } else {
                 skip(parser);
             }
         }
@@ -591,21 +897,111 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         @Override
         protected void onPostExecute(List<Placemark> result) {
             if (result != null) {
+                placemarkList = result;
                 for (Placemark pl : result) {
+                    //skip if a placemark is null (normally never)
+                    if (pl == null) continue;
                     int id = getResources().getIdentifier(pl.description, "drawable",
                             getPackageName());
+                    //If the lyric was already found don't place its marker on the map
+                    if (lyricsFound.contains(pl.name)) {
+                        Log.i(TAG, "Lyric with name " + pl.name + " already found.");
+                        //TODO CHECK IF DELETION NEEDED (if results are going to be used again)
+                        //placemarkList.remove(pl);
+                        continue;
+                    }
                     mMap.addMarker(new MarkerOptions().position(
                             new LatLng(pl.latitude, pl.longitude)).title(pl.description).visible(true)
-                                    .icon(BitmapDescriptorFactory.fromResource(id)));
-                    //TODO: SAVE MARKERS FOR LATER USE
+                            .icon(BitmapDescriptorFactory.fromResource(id)));
+                    //TODO: SAVE MARKERS FOR LATER USE??
                 }
                 //Toast.makeText(MapsActivity.this, "Map Loaded Successfully", Toast.LENGTH_SHORT).show();
-                Log.e(TAG,"Placemarks successfully added to the map");
-            }else{
-                Log.e(TAG,"Placemarks not loaded!");
+                Log.e(TAG, "Placemarks successfully added to the map");
+            } else {
+                Log.e(TAG, "Placemarks not loaded!");
             }
         }
     }
+
+
+    //Receives the lyric in the line:word form (eg.15:3) and returns the actual word
+    private String lyricToWord(String lyric) {
+        String[] lineWord = lyric.split(":");
+        try {
+            int lineNum = Integer.parseInt(lineWord[0]);
+            int wordNum = Integer.parseInt(lineWord[1]);
+            // The word is located in lineNum-1 because the index starts with 0
+            // Word position in the line is wordNum+1 because position 1 is the line Number
+            return allWords.get(lineNum - 1)[wordNum+1];
+        } catch (IndexOutOfBoundsException e) {
+            Log.e(TAG, "Unexpected lyric found!");
+            return null;
+        } catch (NullPointerException e) {
+            Log.e(TAG, "allWords not initialized");
+            return null;
+        }
+    }
+
+    //Return the actual words found, given their "coordinates" and all the words
+    private ArrayList<String> findWordsFound(Set<String> lyricsFound) {
+        if (lyricsFound == null) {
+            Log.e(TAG, "Input contains null, returning EMPTY list.");
+            return new ArrayList<>();
+        }
+        ArrayList<String> wordsFound = new ArrayList<>();
+        for (String lyric : lyricsFound) {
+            wordsFound.add(lyricToWord(lyric));
+        }
+        return wordsFound;
+    }
+
+    //Manipulate the input file and return the parsed lyrics
+    private ArrayList<String[]> parseLyrics(InputStream stream) {
+        Log.i(TAG, "Parsing the text file");
+        ArrayList<String[]> words = new ArrayList<>();
+        try (Scanner scanner = new Scanner(stream)) {
+            while (scanner.hasNextLine()) {
+                String line = scanner.nextLine();
+                //Splits and returns only words
+                //splitting on not word characters, [-] and [']
+                //Note: first string is empty, and second is the line number
+                //I will leave it as it, not to use much processing power
+                words.add(line.split("[^\\w'-]+"));
+            }
+            scanner.close();
+            return words;
+        }
+    }
+
+    private ArrayList<String[]> loadLyricsFromNetwork(String urlString)
+            throws IOException {
+        ArrayList<String[]> lyrics;
+        try (InputStream stream = downloadUrl(urlString)) {
+            lyrics = parseLyrics(stream);
+        }
+        return lyrics;
+    }
+
+    private class DownloadLyricsTask extends AsyncTask<String, Void, ArrayList<String[]>> {
+        private static final String error_load = "Unable to load content. Check your network connection.";
+
+        @Override
+        protected ArrayList<String[]> doInBackground(String... urls) {
+            try {
+                return loadLyricsFromNetwork(urls[0]);
+            } catch (IOException e) {
+                Log.e(TAG, "DownloadLyricsTask: " + error_load + " RETURNING NULL!");
+                return null;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(ArrayList<String[]> result) {
+            Log.i(TAG, "DownloadLyricsTask finished");
+            allWords = result;
+        }
+    }
+
 
 }
 

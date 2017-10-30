@@ -70,7 +70,7 @@
             android:enabled="true"
             android:exported="false"></receiver
         -->
-        <activity android:name=".lyricsActivity"
+        <activity android:name=".LyricsActivity"
             android:screenOrientation="portrait"
             android:label="Lyrics Found">
             <meta-data
