@@ -1,6 +1,8 @@
 package com.iamstelios.songle;
 
 import android.Manifest;
+import android.content.ActivityNotFoundException;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -9,6 +11,7 @@ import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.location.Location;
 import android.net.ConnectivityManager;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
@@ -88,6 +91,26 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public static final String WORDS_FOUND_KEY = "words_found_key";
     private float songDistance;
     private float totalDistance;
+
+    //Used to redirect the user to the video of the song he found
+    public static void watchYoutubeVideo(Context context, String link){
+        if(!link.contains("https://youtu.be/")){
+            Log.e(TAG,"Youtube link not in correct problem");
+            Toast.makeText(context, "Sorry, there was a problem loading the video.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        String id = link.replace("https://youtu.be/","");
+        Intent appIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube:" + id));
+        Intent webIntent = new Intent(Intent.ACTION_VIEW,
+                Uri.parse("http://www.youtube.com/watch?v=" + id));
+        try {
+            context.startActivity(appIntent);
+            Log.i(TAG,"User redirected to Youtube app");
+        } catch (ActivityNotFoundException ex) {
+            Log.i(TAG,"User redirected to broswer to watch video");
+            context.startActivity(webIntent);
+        }
+    }
 
     //Used to calculate how many points to deduct when a lyric is revealed
     private static final Map<String, Integer> pointsToDeduct = new HashMap<String, Integer>() {
@@ -169,27 +192,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
     //Takes as a parameter the current song and progresses the game to the next song
-    private void progressSong(Song song, boolean skipped) {
+    private void progressSong(final Song song, boolean skipped) {
         int currentSongNum = Integer.parseInt(song.number);
         //TODO: Make a test about this case
         SharedPreferences.Editor editor = getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE).edit();
         //Check if all the songs have been guesses
         if (currentSongNum >= songList.size()) {
             Log.i(TAG, "User completed the game!");
-            AlertDialog.Builder builder = new AlertDialog.Builder(MapsActivity.this);
-            builder.setMessage(R.string.dialog_complete_message)
-                    //TODO Add calories and distance walked
-                    .setTitle(R.string.dialog_complete_title);
-            builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialog, int id) {
-                    // User clicked OK button
-                    //Do Nothing
-                    Intent intent = new Intent(MapsActivity.this, MainActivity.class);
-                    startActivity(intent);
-                }
-            });
-            AlertDialog dialog = builder.create();
-            dialog.show();
 
             editor.remove(MainActivity.LYRICS_FOUND_KEY);
             editor.remove(MainActivity.DIFFICULTY_KEY);
@@ -201,19 +210,51 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             editor.commit();
             //Clear map from placemarks
             mMap.clear();
+            Intent intent = new Intent(MapsActivity.this, MainActivity.class);
+            intent.putExtra("artist", song.artist);
+            intent.putExtra("title", song.title);
+            intent.putExtra("link",song.link);
+            intent.putExtra("skipped",skipped);
+            startActivity(intent);
             //TODO CHECK IF RETURN NEEDED
             return;
         }
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(MapsActivity.this);
+        // Message different when user skipping song
+        // (doesn't get to see the name of the song and  the video)
+        builder.setMessage(skipped?"You've skipped the song. \nYou've walked " +
+                songDistance + " meters failing to guess the song.":
+                "You've progressed to the next song! \nYou've walked " +
+                        songDistance + " meters trying to guess: "+song.artist+" - "+song.title+".")
+                .setTitle(skipped?"Skipped song :(":"Congrats!");
+        builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                // User clicked OK button
+                //Do Nothing
+            }
+        });
+        if(!skipped){
+            builder.setNegativeButton("Listen on Youtube", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    // User watch to watch video youtube
+                    watchYoutubeVideo(getInstance(),song.link);
+                }
+            });
+        }
+        AlertDialog dialog = builder.create();
+        dialog.show();
+
         if (skipped) {
-            Toast.makeText(this, "You've skipped the song :( You've walked " +
-                    songDistance + " meters failing to guess the song.", Toast.LENGTH_LONG).show();
+            //Toast.makeText(this, "You've skipped the song :( You've walked " +
+            //        songDistance + " meters failing to guess the song.", Toast.LENGTH_LONG).show();
             Log.i(TAG, "User guessed right and goes to the next song");
             //Add the points to the player score
             points -= 1000;
             updateScore(points);
         } else {
-            Toast.makeText(this, "Congrats! You've progressed to the next song! You've walked " +
-                    songDistance + " meters trying to guess the song.", Toast.LENGTH_LONG).show();
+            //Toast.makeText(this, "Congrats! You've progressed to the next song! You've walked " +
+            //        songDistance + " meters trying to guess the song.", Toast.LENGTH_LONG).show();
             Log.i(TAG, "User guessed right and goes to the next song");
             //Add the points to the player score
             points += 500;

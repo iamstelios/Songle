@@ -37,6 +37,41 @@ public class MainActivity extends AppCompatActivity {
     //Used to determine the difficulty when starting a new game
     private String difficulty;
 
+    private static MainActivity instance;
+
+    public static MainActivity getInstance() {
+        return instance;
+    }
+
+    public static void setInstance(MainActivity instance) {
+        MainActivity.instance = instance;
+    }
+
+    private void showCompletedGameDialog(String artist, String title, final String link, boolean skipped){
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.getInstance());
+        //Message different when user skipped last song
+        builder.setMessage(skipped?getString(R.string.dialog_complete_message_skipped):
+                getString(R.string.dialog_complete_message)+artist+" - "+title)
+                .setTitle(R.string.dialog_complete_title);
+        builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                // User clicked OK button
+                //Do Nothing
+            }
+        });
+        if(!skipped){
+            builder.setNegativeButton("Listen on Youtube", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    // User watch to watch video youtube
+                    MapsActivity.watchYoutubeVideo(getInstance(), link);
+                }
+            });
+        }
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
     //Dialog for choosing difficulty
     private void chooseDifficulty() {
         //Using an Alert Dialog to choose difficulty
@@ -90,12 +125,31 @@ public class MainActivity extends AppCompatActivity {
         //Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         // setSupportActionBar(toolbar);
 
+        setInstance(this);
+
         //Hide continue button if no progress
         View continueButton = findViewById(R.id.ContinueButton);
         if (!hasProgress()) {
             continueButton.setVisibility(View.GONE);
         } else {
             continueButton.setVisibility(View.VISIBLE);
+        }
+
+        Intent intent = this.getIntent();
+        /* Obtain String from Intent  */
+        //TODO check case where I finish game so I have intent, then start new game, then press back
+        if(intent.hasExtra("artist")) {
+            //Assumming that if the intent has the artist extra
+            // then it has the other extras too
+            String artist = intent.getExtras().getString("artist");
+            String title = intent.getExtras().getString("title");
+            String link = intent.getExtras().getString("link");
+            boolean skipped = intent.getExtras().getBoolean("skipped");
+            showCompletedGameDialog(artist,title,link,skipped);
+            intent.removeExtra("artist");
+            intent.removeExtra("title");
+            intent.removeExtra("link");
+            intent.removeExtra("skipped");
         }
 
         /*
