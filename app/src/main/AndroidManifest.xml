@@ -72,7 +72,7 @@
         -->
         <activity android:name=".LyricsActivity"
             android:screenOrientation="portrait"
-            android:label="Lyrics Found">
+            android:label="@string/title_activity_lyrics">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.iamstelios.songle.MapsActivity" />

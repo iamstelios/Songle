@@ -53,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
                         editor.putString(SONG_KEY, getString(R.string.first_song_number));
                         //Set the lyrics found to empty
                         editor.putStringSet(LYRICS_FOUND_KEY, new HashSet<String>());
+                        editor.putFloat(SONG_DIST_KEY,0);
                         editor.putInt(POINTS_KEY, STARTING_POINTS);
                         editor.apply();
                         Toast.makeText(MainActivity.this, R.string.new_game_toast, Toast.LENGTH_SHORT).show();
@@ -188,6 +189,15 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+
+        ImageButton statsButton = (ImageButton) findViewById(R.id.StatsButton);
+        statsButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //gg;
+            }
+        });
+
 
         ImageButton helpButton = (ImageButton) findViewById(R.id.HelpButton);
         helpButton.setOnClickListener(new View.OnClickListener() {
