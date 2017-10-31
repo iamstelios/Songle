@@ -29,6 +29,8 @@ public class MainActivity extends AppCompatActivity {
     public static final String POINTS_KEY = "points_key";
     public static final String GLOBAL_PREFS = "global_preferences";
     public static final String NETWORK_PREF_KEY = "network_pref_key";
+    public static final String SONG_DIST_KEY = "song_distance_key";
+    public static final String TOTAL_DIST_KEY = "total_distance_key";
 
     public static int STARTING_POINTS = 500;
 
@@ -152,8 +154,8 @@ public class MainActivity extends AppCompatActivity {
         });
 
         //Connection button shanges the data connection preference of the user
-        ImageButton connection = (ImageButton) findViewById(R.id.ConnectionButton);
-        connection.setOnClickListener(new View.OnClickListener() {
+        ImageButton connectionButton = (ImageButton) findViewById(R.id.ConnectionButton);
+        connectionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 final SharedPreferences.Editor editor = getSharedPreferences(GLOBAL_PREFS, MODE_PRIVATE).edit();
@@ -164,19 +166,34 @@ public class MainActivity extends AppCompatActivity {
                         // The 'which' argument contains the index position
                         // of the selected item
                         String networkPref;
-                        if(which==0){
-                            networkPref=NetworkReceiver.WIFI;
-                        }else if(which==1){
-                            networkPref=NetworkReceiver.ANY;
-                        }else{
+                        if (which == 0) {
+                            networkPref = NetworkReceiver.WIFI;
+                            Toast.makeText(MainActivity.this,
+                                    "Downloads are only over WiFi now!",
+                                    Toast.LENGTH_LONG).show();
+                        } else if (which == 1) {
+                            networkPref = NetworkReceiver.ANY;
+                            Toast.makeText(MainActivity.this, "Downloads are allowed with both WiFi and Data now!", Toast.LENGTH_LONG).show();
+                        } else {
                             return;
                         }
                         editor.putString(NETWORK_PREF_KEY, networkPref);
                         editor.apply();
-                        Log.i(TAG,"Data connection preferences changed to " +networkPref);
+                        Log.i(TAG, "Data connection preferences changed to " + networkPref);
 
                     }
                 });
+                AlertDialog dialog = builder.create();
+                dialog.show();
+
+            }
+        });
+
+        ImageButton helpButton = (ImageButton) findViewById(R.id.HelpButton);
+        helpButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //gg;
             }
         });
 

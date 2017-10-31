@@ -37,9 +37,28 @@
     <FrameLayout
         android:layout_width="50dp"
         android:layout_height="50dp"
-        android:layout_marginBottom="70dp"
+        android:layout_marginBottom="20dp"
         android:layout_marginEnd="10dp"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintRight_toRightOf="parent">
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/skipSongButton"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clickable="true"
+            app:backgroundTint="@android:color/black"
+            app:fabSize="mini"
+            app:srcCompat="@android:drawable/ic_media_ff" />
+    </FrameLayout>
+
+    <FrameLayout
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginBottom="20dp"
+        android:layout_marginEnd="10dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent">
 
         <android.support.design.widget.FloatingActionButton
@@ -47,9 +66,9 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:clickable="true"
-            app:backgroundTint="@color/colorPrimary"
+            app:backgroundTint="@color/colorPrimaryDark"
             app:fabSize="mini"
-            app:srcCompat="@android:drawable/ic_menu_myplaces" />
+            app:srcCompat="@drawable/music_sign" />
     </FrameLayout>
 
     <!--android.support.design.widget.FloatingActionButton
@@ -70,7 +89,7 @@
     <FrameLayout
         android:layout_width="50dp"
         android:layout_height="50dp"
-        android:layout_marginBottom="70dp"
+        android:layout_marginBottom="20dp"
         android:layout_marginStart="10dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent">
@@ -80,7 +99,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:clickable="true"
-            app:backgroundTint="@color/colorPrimary"
+            app:backgroundTint="@color/primary_light"
             app:fabSize="mini"
             app:srcCompat="@android:drawable/checkbox_on_background" />
     </FrameLayout>
@@ -102,7 +121,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:background="@color/colorPrimaryDark"
+        android:background="@color/primary_light"
         android:text="@string/score_image_description"
         android:textColor="@color/primary_text"
         android:textSize="36sp"
@@ -114,14 +133,41 @@
         android:id="@+id/scoreText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="0dp"
+        android:layout_marginStart="5dp"
         android:layout_marginTop="16dp"
-        android:background="@color/colorPrimaryDark"
+        android:background="@color/primary_light"
         android:text="#SCORE#"
         android:textColor="@color/primary_text"
         android:textSize="36sp"
         android:textStyle="bold"
         app:layout_constraintLeft_toRightOf="@id/scoreTitleText"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/songDistanceTitleText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:background="@color/primary_light"
+        android:text="@string/distance_image_description"
+        android:textColor="@color/primary_text"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/scoreTitleText" />
+
+    <TextView
+        android:id="@+id/songDistanceText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="5dp"
+        android:layout_marginTop="10dp"
+        android:background="@color/primary_light"
+        android:text="#DIST#"
+        android:textColor="@color/primary_text"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintLeft_toRightOf="@id/songDistanceTitleText"
+        app:layout_constraintTop_toBottomOf="@id/scoreText" />
 
 </android.support.constraint.ConstraintLayout>

@@ -86,6 +86,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private ArrayList<String[]> allWords;
     private final String WORDS_URL = "http://www.inf.ed.ac.uk/teaching/courses/selp/data/songs/%s/words.txt";
     public static final String WORDS_FOUND_KEY = "words_found_key";
+    private float songDistance;
+    private float totalDistance;
 
     //Used to calculate how many points to deduct when a lyric is revealed
     private static final Map<String, Integer> pointsToDeduct = new HashMap<String, Integer>() {
@@ -109,6 +111,33 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     };
 
+    private void updateDistanceText(float songDistance) {
+        TextView songDistanceText = findViewById(R.id.songDistanceText);
+        songDistanceText.setText(String.valueOf(songDistance));
+    }
+
+    private void updateDistance(Location location) {
+        if (mLastLocation == null) {
+            return;
+        }
+        double distanceToLast = location.distanceTo(mLastLocation);
+        // if less than 10 metres, do not record
+        if (distanceToLast < 10.00) {
+            Log.i(TAG, "updateDistance: Values too close, so not used.");
+        } else {
+            SharedPreferences.Editor editor = getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE).edit();
+            songDistance += distanceToLast;
+            editor.putFloat(MainActivity.SONG_DIST_KEY, songDistance);
+            editor.apply();
+            editor = getSharedPreferences(MainActivity.GLOBAL_PREFS, MODE_PRIVATE).edit();
+            totalDistance += distanceToLast;
+            editor.putFloat(MainActivity.TOTAL_DIST_KEY, totalDistance);
+            editor.apply();
+            updateDistanceText(songDistance);
+            Log.i(TAG, "Distances have been updated");
+        }
+    }
+
     //Return the song given the song's number
     private Song getSong(String songNumber) {
         try {
@@ -123,7 +152,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     //Update the screen showing the score and save the score in the preferences
     private void updateScore(int points) {
-        TextView scoreText = (TextView) findViewById(R.id.scoreText);
+        TextView scoreText = findViewById(R.id.scoreText);
         scoreText.setText(String.valueOf(points));
         SharedPreferences.Editor editor = getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE).edit();
         editor.putInt(MainActivity.POINTS_KEY, points);
@@ -140,7 +169,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
     //Takes as a parameter the current song and progresses the game to the next song
-    private void progressSong(Song song) {
+    private void progressSong(Song song, boolean skipped) {
         int currentSongNum = Integer.parseInt(song.number);
         //TODO: Make a test about this case
         SharedPreferences.Editor editor = getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE).edit();
@@ -155,6 +184,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 public void onClick(DialogInterface dialog, int id) {
                     // User clicked OK button
                     //Do Nothing
+                    Intent intent = new Intent(MapsActivity.this, MainActivity.class);
+                    startActivity(intent);
                 }
             });
             AlertDialog dialog = builder.create();
@@ -164,17 +195,31 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             editor.remove(MainActivity.DIFFICULTY_KEY);
             editor.remove(MainActivity.POINTS_KEY);
             editor.remove(MainActivity.SONG_KEY);
+            editor.remove(MainActivity.SONG_DIST_KEY);
             //Commit changes because we want to be sure the continue button
             // will be not be present in main activity
             editor.commit();
-
-            Intent intent = new Intent(MapsActivity.this, MainActivity.class);
-            startActivity(intent);
+            //Clear map from placemarks
+            mMap.clear();
             //TODO CHECK IF RETURN NEEDED
             return;
         }
-        Toast.makeText(this, "Congrats! You've progressed to the next song!", Toast.LENGTH_LONG).show();
-        Log.i(TAG, "User guess right and goes to the next song");
+        if (skipped) {
+            Toast.makeText(this, "You've skipped the song :( You've walked " +
+                    songDistance + " meters failing to guess the song.", Toast.LENGTH_LONG).show();
+            Log.i(TAG, "User guessed right and goes to the next song");
+            //Add the points to the player score
+            points -= 1000;
+            updateScore(points);
+        } else {
+            Toast.makeText(this, "Congrats! You've progressed to the next song! You've walked " +
+                    songDistance + " meters trying to guess the song.", Toast.LENGTH_LONG).show();
+            Log.i(TAG, "User guessed right and goes to the next song");
+            //Add the points to the player score
+            points += 500;
+            updateScore(points);
+        }
+
         //Change the song number
         songNumber = String.format(Locale.ENGLISH, "%02d", currentSongNum + 1);
         editor.putString(MainActivity.SONG_KEY, songNumber);
@@ -182,9 +227,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         lyricsFound = new HashSet<String>();
         editor.putStringSet(MainActivity.LYRICS_FOUND_KEY, lyricsFound);
         editor.apply();
-        //Add the points to the player score
-        points += 500;
-        updateScore(points);
+
+        songDistance = 0;
+        updateDistanceText(songDistance);
+
+        //Clear map from placemarks
+        mMap.clear();
+
         //TODO Add test
         //Update the Placemark map for the new song
         new DownloadPlacemarksTask().execute(String.format(KML_URL, songNumber, difficulty));
@@ -205,8 +254,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
 
-    public void runDownloads(){
-        Log.i(TAG,"Attempting to download resources");
+    public void runDownloads() {
+        Log.i(TAG, "Attempting to download resources");
         //Download the song list
         new DownloadSongsTask().execute(SONGS_XML_URL);
         //Download the Placemark map
@@ -253,6 +302,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         lyricsFound = prefs.getStringSet(MainActivity.LYRICS_FOUND_KEY, new HashSet<String>());
         points = prefs.getInt(MainActivity.POINTS_KEY, MainActivity.STARTING_POINTS);
         updateScore(points);
+
+        songDistance = prefs.getFloat(MainActivity.SONG_DIST_KEY, 0);
+        updateDistanceText(songDistance);
+        prefs = getSharedPreferences(MainActivity.GLOBAL_PREFS, MODE_PRIVATE);
+        totalDistance = prefs.getFloat(MainActivity.TOTAL_DIST_KEY, 0);
+
         //String difficulty = getIntent().getExtras().getString(MainActivity.DIFFICULTY_KEY);
         Log.i(TAG, "Song Number: " + songNumber + " Difficulty: " + difficulty);
         //Toast.makeText(this, "Difficulty: " +
@@ -267,17 +322,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //Download the song list
         //new DownloadSongsTask().execute(SONGS_XML_URL);
 
-        //EXPERIMENT
         setInstance(this);
         // Register BroadcastReceiver to track connection changes.
         IntentFilter filter = new
                 IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
         receiver = new NetworkReceiver();
         this.registerReceiver(receiver, filter);
-        //EXPERIMENT
 
-        FloatingActionButton submit_button = (FloatingActionButton) findViewById(R.id.submitButton);
-        submit_button.setOnClickListener(new View.OnClickListener() {
+        FloatingActionButton submitButton = (FloatingActionButton) findViewById(R.id.submitButton);
+        submitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 final Song song = getSong(songNumber);
@@ -286,7 +339,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             R.string.songs_not_loaded_error,
                             Toast.LENGTH_SHORT).show();
                 } else {
-                    //Show a dialog that asks the user if he wants to submit the song
+                    //Show a dialog that asks the user if user wants to submit the song
                     final AlertDialog.Builder builder = new AlertDialog.Builder(MapsActivity.this);
                     //Set the message and title of the dialog
                     builder.setMessage(R.string.dialog_submit_message)
@@ -306,12 +359,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             Log.i(TAG, "User submitted song: " + submission);
                             if (submission.equalsIgnoreCase(song.title)) {
                                 //Correct guess
-                                progressSong(song);
+                                progressSong(song, false);
                             } else {
                                 //Wrong guess
                                 points -= 10;
                                 updateScore(points);
-                                Toast.makeText(MapsActivity.this, "Wrong Song! Try Again :)", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(MapsActivity.this, "Wrong Song :( Try Again.", Toast.LENGTH_SHORT).show();
                                 Log.i(TAG, "User guessed the wrong song.");
                             }
                         }
@@ -330,12 +383,49 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
 
+        //Skip song floating action button
+        FloatingActionButton skipSongButton = (FloatingActionButton) findViewById(R.id.skipSongButton);
+        skipSongButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                final Song song = getSong(songNumber);
+                if (song == null) {
+                    Toast.makeText(MapsActivity.this,
+                            R.string.songs_not_loaded_error,
+                            Toast.LENGTH_SHORT).show();
+                } else {
+                    //Show a dialog that asks the user if user wants to skip the song
+                    final AlertDialog.Builder builder = new AlertDialog.Builder(MapsActivity.this);
+                    //Set the message and title of the dialog
+                    builder.setMessage(R.string.dialog_skip_song)
+                            .setTitle(R.string.dialog_skip_song_title);
+                    // Setting up the submission and cancellation buttons
+                    builder.setPositiveButton(R.string.skip, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int id) {
+                            progressSong(song, true);
+                        }
+                    });
+                    builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            //Do nothing
+                            Log.i(TAG, "User cancelled skipping song");
+                        }
+                    });
+                    AlertDialog dialog = builder.create();
+                    dialog.show();
+                }
+
+            }
+        });
+
         //Go to lyrics floating action button
         FloatingActionButton lyrics_button = (FloatingActionButton) findViewById(R.id.lyricsButton);
         lyrics_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(allWords == null){
+                if (allWords == null) {
                     Toast.makeText(MapsActivity.this, R.string.lyrics_connection_error, Toast.LENGTH_SHORT).show();
                     return;
                 }
@@ -375,10 +465,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             //mLocationPermissionGranted = true;
             LocationServices.FusedLocationApi.requestLocationUpdates(
                     mGoogleApiClient, mLocationRequest, this);
-            Log.i(TAG,"Location requests initiated");
-        }else{
+            Log.i(TAG, "Location requests initiated");
+        } else {
             //mLocationPermissionGranted = false;
-            Log.e(TAG,"Location requests not initiated");
+            Log.e(TAG, "Location requests not initiated");
         }
     }
 
@@ -410,6 +500,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         String.valueOf(current.getLatitude()) + "," +
                         String.valueOf(current.getLongitude()) + ")"
         );
+        updateDistance(current);
         mLastLocation = current;
 
         //TODO: Do something with current location
@@ -430,14 +521,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         float[] results = new float[3];
         //Check if last location is initialized
         if (mLastLocation == null) {
-            Log.i(TAG,"Last Location is Null, can't show dialog now.");
+            Log.i(TAG, "Last Location is Null, can't show dialog now.");
             // Can we access the user's current location?
             if (ContextCompat.checkSelfPermission(this,
                     Manifest.permission.ACCESS_FINE_LOCATION) ==
                     PackageManager.PERMISSION_GRANTED) {
-                Log.i(TAG,"Last Location null and permissions are granted");
-                if(!mMap.isMyLocationEnabled()){
-                    Log.i(TAG,"Enabling MyLocation");
+                Log.i(TAG, "Last Location null and permissions are granted");
+                if (!mMap.isMyLocationEnabled()) {
+                    Log.i(TAG, "Enabling MyLocation");
                     //My location wasn't enabled so we enable it
                     locationButtonInitializer();
 
@@ -450,7 +541,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     mLastLocation =
                             LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
                 }
-                if(mLastLocation==null){
+                if (mLastLocation == null) {
                     Toast.makeText(this, "You must open location services and track your location first!", Toast.LENGTH_LONG).show();
                     Log.e(TAG, "Player must open track location before accessing markers");
                     return true;
@@ -472,7 +563,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         Log.i(TAG, "Distance between player and lyric " + lyricName + " selected is approximately"
                 + distance + " meters");
 
-        //Show a dialog that asks the user if he wants to collect or reveal the lyric
+        //Show a dialog that asks the user if user wants to collect or reveal the lyric
         AlertDialog.Builder builder = new AlertDialog.Builder(MapsActivity.this);
         //Set the message and title of the dialog
         builder.setMessage(R.string.dialog_lyric_message)
@@ -1017,7 +1108,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             int wordNum = Integer.parseInt(lineWord[1]);
             // The word is located in lineNum-1 because the index starts with 0
             // Word position in the line is wordNum+1 because position 1 is the line Number
-            return allWords.get(lineNum - 1)[wordNum+1];
+            return allWords.get(lineNum - 1)[wordNum + 1];
         } catch (IndexOutOfBoundsException e) {
             Log.e(TAG, "Unexpected lyric found!");
             return getString(R.string.unexpected_lyric);

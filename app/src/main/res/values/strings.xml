@@ -117,12 +117,16 @@
     <string name="dialog_submit_message">Correct: +500 points. \nWrong: -10 points.</string>
     <string name="dialog_submit_title">Guess the song</string>
     <string name="submit">Submit</string>
-    <string name="dialog_complete_message">Congratulations!</string>
-    <string name="dialog_complete_title">You\'ve found all songs!</string>
+    <string name="dialog_complete_title">Congratulations!</string>
+    <string name="dialog_complete_message">You\'ve found all songs!</string>
     <string name="subtitle_main">Test your music knowledge while getting fit</string>
     <string name="songs_not_loaded_error">Songs not loaded. Check your connection.</string>
     <string name="unexpected_lyric">Lyric is corrupted :(</string>
     <string name="lyric_text_not_loaded">Lyric cannot be loaded your check connection</string>
     <string name="lyrics_connection_error">Lyrics not loaded. Check your connection.</string>
+    <string name="distance_image_description">Distance walked: </string>
+    <string name="dialog_skip_song">Are you sure that you want to skip this song? (-1000 points)</string>
+    <string name="dialog_skip_song_title">Skip Song</string>
+    <string name="skip">Skip</string>
 
 </resources>

@@ -73,10 +73,10 @@
             app:srcCompat="@drawable/connection" />
 
         <ImageButton
-            android:id="@+id/HighscoresButton"
+            android:id="@+id/HelpButton"
             style="@style/ButtonsMain"
             android:contentDescription="Highscores"
-            app:srcCompat="@drawable/exit" />
+            app:srcCompat="@drawable/help" />
     </LinearLayout>
 
 </android.support.constraint.ConstraintLayout>
