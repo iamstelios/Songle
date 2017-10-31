@@ -21,6 +21,10 @@
         <item>Easy</item>
         <item>Extremely Easy</item>
     </string-array>
+    <string-array name="connection_settings">
+        <item>Use only WiFi</item>
+        <item>Use Data &amp; WiFi</item>
+    </string-array>
 
     <!-- Strings related to Settings -->
     <string name="pref_title_data_connection">Data Connection</string>
@@ -115,5 +119,10 @@
     <string name="submit">Submit</string>
     <string name="dialog_complete_message">Congratulations!</string>
     <string name="dialog_complete_title">You\'ve found all songs!</string>
+    <string name="subtitle_main">Test your music knowledge while getting fit</string>
+    <string name="songs_not_loaded_error">Songs not loaded. Check your connection.</string>
+    <string name="unexpected_lyric">Lyric is corrupted :(</string>
+    <string name="lyric_text_not_loaded">Lyric cannot be loaded your check connection</string>
+    <string name="lyrics_connection_error">Lyrics not loaded. Check your connection.</string>
 
 </resources>

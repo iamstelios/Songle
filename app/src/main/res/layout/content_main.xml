@@ -11,12 +11,12 @@
     tools:showIn="@layout/activity_main">
 
     <TextView
-        android:id="@+id/Title"
+        android:id="@+id/Subtitle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:fontFamily="sans-serif"
         android:gravity="center_horizontal"
-        android:text="Test your music knowledge while getting fit"
+        android:text="@string/subtitle_main"
         android:textAllCaps="false"
         android:textColor="@color/common_google_signin_btn_text_dark_focused"
         android:textSize="20sp"
@@ -46,7 +46,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/Title">
+        app:layout_constraintTop_toBottomOf="@+id/Subtitle">
 
         <ImageButton
             android:id="@+id/NewGameButton"
@@ -61,22 +61,22 @@
             app:srcCompat="@drawable/continue_game" />
 
         <ImageButton
-            android:id="@+id/DifficultyButton"
+            android:id="@+id/StatsButton"
             style="@style/ButtonsMain"
             android:contentDescription="Difficulty"
-            app:srcCompat="@drawable/difficulty" />
+            app:srcCompat="@drawable/stats" />
 
         <ImageButton
-            android:id="@+id/UserButton"
+            android:id="@+id/ConnectionButton"
             style="@style/ButtonsMain"
             android:contentDescription="User"
-            app:srcCompat="@drawable/user" />
+            app:srcCompat="@drawable/connection" />
 
         <ImageButton
             android:id="@+id/HighscoresButton"
             style="@style/ButtonsMain"
             android:contentDescription="Highscores"
-            app:srcCompat="@drawable/highscores" />
+            app:srcCompat="@drawable/exit" />
     </LinearLayout>
 
 </android.support.constraint.ConstraintLayout>

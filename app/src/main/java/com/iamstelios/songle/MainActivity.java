@@ -27,6 +27,8 @@ public class MainActivity extends AppCompatActivity {
     public static final String DIFFICULTY_KEY = "difficulty_key";
     public static final String LYRICS_FOUND_KEY = "lyrics_found_key";
     public static final String POINTS_KEY = "points_key";
+    public static final String GLOBAL_PREFS = "global_preferences";
+    public static final String NETWORK_PREF_KEY = "network_pref_key";
 
     public static int STARTING_POINTS = 500;
 
@@ -48,8 +50,8 @@ public class MainActivity extends AppCompatActivity {
                         //Starting for the first song if it's a new game
                         editor.putString(SONG_KEY, getString(R.string.first_song_number));
                         //Set the lyrics found to empty
-                        editor.putStringSet(LYRICS_FOUND_KEY,new HashSet<String>());
-                        editor.putInt(POINTS_KEY,STARTING_POINTS);
+                        editor.putStringSet(LYRICS_FOUND_KEY, new HashSet<String>());
+                        editor.putInt(POINTS_KEY, STARTING_POINTS);
                         editor.apply();
                         Toast.makeText(MainActivity.this, R.string.new_game_toast, Toast.LENGTH_SHORT).show();
                         Log.i(TAG, "Started a new game");
@@ -63,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int id) {
                         //DO NOTHING
-                        Log.i(TAG,"User canceled selecting the difficulty");
+                        Log.i(TAG, "User canceled selecting the difficulty");
                     }
                 });
         //Get the AlertDialog from create()
@@ -72,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //Check if user has progress stored by checking if difficulty is stored
-    private boolean hasProgress(){
+    private boolean hasProgress() {
         SharedPreferences prefs = getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE);
         return prefs.contains(DIFFICULTY_KEY);
     }
@@ -121,7 +123,7 @@ public class MainActivity extends AppCompatActivity {
                     builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
                             // User cancelled the dialog and doesn't want to lose progress
-                            Log.i(TAG,"User canceled selecting new game");
+                            Log.i(TAG, "User canceled selecting new game");
                         }
                     });
                     //Get the AlertDialog from create()
@@ -143,11 +145,41 @@ public class MainActivity extends AppCompatActivity {
                     //Load the Maps Activity
                     Intent intent = new Intent(MainActivity.this, MapsActivity.class);
                     startActivity(intent);
-                }else{
-                    Log.e(TAG,"User pressed continue button while having no progress");
+                } else {
+                    Log.e(TAG, "User pressed continue button while having no progress");
                 }
             }
         });
+
+        //Connection button shanges the data connection preference of the user
+        ImageButton connection = (ImageButton) findViewById(R.id.ConnectionButton);
+        connection.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                final SharedPreferences.Editor editor = getSharedPreferences(GLOBAL_PREFS, MODE_PRIVATE).edit();
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                builder.setTitle("Choose data connection settings");
+                builder.setItems(R.array.connection_settings, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        // The 'which' argument contains the index position
+                        // of the selected item
+                        String networkPref;
+                        if(which==0){
+                            networkPref=NetworkReceiver.WIFI;
+                        }else if(which==1){
+                            networkPref=NetworkReceiver.ANY;
+                        }else{
+                            return;
+                        }
+                        editor.putString(NETWORK_PREF_KEY, networkPref);
+                        editor.apply();
+                        Log.i(TAG,"Data connection preferences changed to " +networkPref);
+
+                    }
+                });
+            }
+        });
+
         /*
         //Ensuring permissions are granted
         if(!permissionGranted){

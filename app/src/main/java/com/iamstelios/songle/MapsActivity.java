@@ -3,10 +3,12 @@ package com.iamstelios.songle;
 import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.location.Location;
+import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
@@ -69,7 +71,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleApiClient mGoogleApiClient;
     private final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     //TODO: CHECK WHAT HAPPENS WHEN I DONT HAVE PERMISSIONS AND CHANGE ACCORDINGLY
-    private boolean mLocationPermissionGranted = false;
+    //private boolean mLocationPermissionGranted = false;
     private Location mLastLocation;
     private final LatLng GEORGE_SQUARE_LATLNG = new LatLng(55.944251, -3.189111);
 
@@ -183,7 +185,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //Add the points to the player score
         points += 500;
         updateScore(points);
-
+        //TODO Add test
         //Update the Placemark map for the new song
         new DownloadPlacemarksTask().execute(String.format(KML_URL, songNumber, difficulty));
         Log.i(TAG, "Map Updated with new Song");
@@ -202,6 +204,29 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return null;
     }
 
+
+    public void runDownloads(){
+        Log.i(TAG,"Attempting to download resources");
+        //Download the song list
+        new DownloadSongsTask().execute(SONGS_XML_URL);
+        //Download the Placemark map
+        new DownloadPlacemarksTask().execute(String.format(KML_URL, songNumber, difficulty));
+        //Download the text of the song
+        new DownloadLyricsTask().execute(String.format(WORDS_URL, songNumber));
+    }
+
+    private NetworkReceiver receiver = new NetworkReceiver();
+    //Have the Maps Activity instance so that the Network Receiver can access it
+    private static MapsActivity instance;
+
+    public static MapsActivity getInstance() {
+        return instance;
+    }
+
+    public static void setInstance(MapsActivity instance) {
+        MapsActivity.instance = instance;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -217,10 +242,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     .addConnectionCallbacks(this)
                     .addOnConnectionFailedListener(this)
                     .addApi(LocationServices.API).build();
+            Log.i(TAG, "Google Api Client initialized");
         }
         Log.i(TAG, "Map Created");
-        //Download the song list
-        new DownloadSongsTask().execute(SONGS_XML_URL);
+
         //Retrieve the user preferences and stats
         SharedPreferences prefs = getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE);
         difficulty = prefs.getString(MainActivity.DIFFICULTY_KEY, getString(R.string.difficulty_easy));
@@ -234,10 +259,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //        getResources().getStringArray(R.array.difficulties)[Integer.parseInt(difficulty)-1],
         //        Toast.LENGTH_SHORT).show();
 
+        //TODO REMOVE
         //Download the Placemark map
-        new DownloadPlacemarksTask().execute(String.format(KML_URL, songNumber, difficulty));
+        //new DownloadPlacemarksTask().execute(String.format(KML_URL, songNumber, difficulty));
         //Download the text of the song
-        new DownloadLyricsTask().execute(String.format(WORDS_URL, songNumber));
+        //new DownloadLyricsTask().execute(String.format(WORDS_URL, songNumber));
+        //Download the song list
+        //new DownloadSongsTask().execute(SONGS_XML_URL);
+
+        //EXPERIMENT
+        setInstance(this);
+        // Register BroadcastReceiver to track connection changes.
+        IntentFilter filter = new
+                IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+        receiver = new NetworkReceiver();
+        this.registerReceiver(receiver, filter);
+        //EXPERIMENT
 
         FloatingActionButton submit_button = (FloatingActionButton) findViewById(R.id.submitButton);
         submit_button.setOnClickListener(new View.OnClickListener() {
@@ -246,7 +283,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 final Song song = getSong(songNumber);
                 if (song == null) {
                     Toast.makeText(MapsActivity.this,
-                            "Songs not loaded. Go back and check your connection.",
+                            R.string.songs_not_loaded_error,
                             Toast.LENGTH_SHORT).show();
                 } else {
                     //Show a dialog that asks the user if he wants to submit the song
@@ -298,6 +335,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         lyrics_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if(allWords == null){
+                    Toast.makeText(MapsActivity.this, R.string.lyrics_connection_error, Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 ArrayList<String> wordsFound = findWordsFound(lyricsFound);
                 Intent intent = new Intent(MapsActivity.this, LyricsActivity.class);
                 intent.putStringArrayListExtra(WORDS_FOUND_KEY, wordsFound);
@@ -331,8 +372,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         int permissionCheck = ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION);
         if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
+            //mLocationPermissionGranted = true;
             LocationServices.FusedLocationApi.requestLocationUpdates(
                     mGoogleApiClient, mLocationRequest, this);
+            Log.i(TAG,"Location requests initiated");
+        }else{
+            //mLocationPermissionGranted = false;
+            Log.e(TAG,"Location requests not initiated");
         }
     }
 
@@ -382,10 +428,40 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         LatLng markerPosition = marker.getPosition();
         float[] results = new float[3];
+        //Check if last location is initialized
         if (mLastLocation == null) {
-            Toast.makeText(this, "You must open location services and track your location first! (Upper right corner)", Toast.LENGTH_LONG).show();
-            Log.e(TAG, "Player must open track location before accessing markers");
-            return true;
+            Log.i(TAG,"Last Location is Null, can't show dialog now.");
+            // Can we access the user's current location?
+            if (ContextCompat.checkSelfPermission(this,
+                    Manifest.permission.ACCESS_FINE_LOCATION) ==
+                    PackageManager.PERMISSION_GRANTED) {
+                Log.i(TAG,"Last Location null and permissions are granted");
+                if(!mMap.isMyLocationEnabled()){
+                    Log.i(TAG,"Enabling MyLocation");
+                    //My location wasn't enabled so we enable it
+                    locationButtonInitializer();
+
+                    //Try to track location
+                    try {
+                        createLocationRequest();
+                    } catch (java.lang.IllegalStateException ise) {
+                        Log.e(TAG, "IllegalStateException thrown [onConnected]");
+                    }
+                    mLastLocation =
+                            LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+                }
+                if(mLastLocation==null){
+                    Toast.makeText(this, "You must open location services and track your location first!", Toast.LENGTH_LONG).show();
+                    Log.e(TAG, "Player must open track location before accessing markers");
+                    return true;
+                }
+            } else {
+                Log.i(TAG, "Player didn't granted permissions for location");
+                ActivityCompat.requestPermissions(this,
+                        new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
+                        PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+                return true;
+            }
         }
         Location.distanceBetween(mLastLocation.getLatitude(), mLastLocation.getLongitude(),
                 markerPosition.latitude, markerPosition.longitude, results);
@@ -505,17 +581,26 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         //Map to load in George Square by default
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(GEORGE_SQUARE_LATLNG, 17));
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION) ==
+                PackageManager.PERMISSION_GRANTED) {
+            locationButtonInitializer();
+        }
+        mMap.setOnMarkerClickListener(this);
 
+
+    }
+
+    private void locationButtonInitializer() {
         try {
             // Visualise current position with a small blue circle
             mMap.setMyLocationEnabled(true);
         } catch (SecurityException se) {
+            Log.e(TAG, se.getMessage());
             Log.e(TAG, "Security exception thrown [onMapReady]");
         }
         // Add ``My location'' button to the user interface
         mMap.getUiSettings().setMyLocationButtonEnabled(true);
-        mMap.setOnMarkerClickListener(this);
-
     }
 
     /*
@@ -916,7 +1001,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     //TODO: SAVE MARKERS FOR LATER USE??
                 }
                 //Toast.makeText(MapsActivity.this, "Map Loaded Successfully", Toast.LENGTH_SHORT).show();
-                Log.e(TAG, "Placemarks successfully added to the map");
+                Log.i(TAG, "Placemarks successfully added to the map");
             } else {
                 Log.e(TAG, "Placemarks not loaded!");
             }
@@ -935,17 +1020,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             return allWords.get(lineNum - 1)[wordNum+1];
         } catch (IndexOutOfBoundsException e) {
             Log.e(TAG, "Unexpected lyric found!");
-            return null;
+            return getString(R.string.unexpected_lyric);
         } catch (NullPointerException e) {
             Log.e(TAG, "allWords not initialized");
-            return null;
+            return getString(R.string.lyric_text_not_loaded);
         }
     }
 
     //Return the actual words found, given their "coordinates" and all the words
     private ArrayList<String> findWordsFound(Set<String> lyricsFound) {
         if (lyricsFound == null) {
-            Log.e(TAG, "Input contains null, returning EMPTY list.");
+            Log.e(TAG, "Lyrics found null, returning EMPTY list.");
             return new ArrayList<>();
         }
         ArrayList<String> wordsFound = new ArrayList<>();
