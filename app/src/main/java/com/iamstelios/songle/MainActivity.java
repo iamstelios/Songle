@@ -31,6 +31,7 @@ public class MainActivity extends AppCompatActivity {
     public static final String NETWORK_PREF_KEY = "network_pref_key";
     public static final String SONG_DIST_KEY = "song_distance_key";
     public static final String TOTAL_DIST_KEY = "total_distance_key";
+    public static final String HIGHSCORE_KEY = "highscore_key";
 
     public static int STARTING_POINTS = 500;
 
@@ -257,7 +258,8 @@ public class MainActivity extends AppCompatActivity {
         helpButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //gg;
+                Intent intent = new Intent(MainActivity.this, HelpActivity.class);
+                startActivity(intent);
             }
         });
 
@@ -283,6 +285,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /* Settings stuff TODO DELETE!
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -290,6 +293,7 @@ public class MainActivity extends AppCompatActivity {
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
+
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -309,6 +313,9 @@ public class MainActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
+    */
+
+
     /*
     //TODO: CHECK IF STORAGE ACCESS IS NEEDED
     //Code below borrowed by https://gist.github.com/davidgassner/e92184e5c50daf59ffad8eb447cafde9

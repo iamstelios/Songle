@@ -25,6 +25,7 @@
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -70,12 +71,21 @@
             android:enabled="true"
             android:exported="false"></receiver
         -->
-        <activity android:name=".LyricsActivity"
-            android:screenOrientation="portrait"
-            android:label="@string/title_activity_lyrics">
+        <activity
+            android:name=".LyricsActivity"
+            android:label="@string/title_activity_lyrics"
+            android:screenOrientation="portrait">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.iamstelios.songle.MapsActivity" />
+        </activity>
+        <activity
+            android:name=".HelpActivity"
+            android:label="Help"
+            android:screenOrientation="portrait">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.iamstelios.songle.MainActivity" />
         </activity>
     </application>
 

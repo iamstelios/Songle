@@ -1,0 +1,352 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/primary_light"
+    tools:context="com.iamstelios.songle.HelpActivity">
+
+    <TextView
+        android:id="@+id/helpTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:text="Instructions"
+        android:textColor="@color/primary_text"
+        android:textSize="40sp"
+        android:textStyle="bold"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!--TextView
+        android:id="@+id/helpGoal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:text="Guess the song title by collecting its lyrics while exploring George Square Campus"
+        android:textColor="@color/primary_text"
+        android:textSize="25sp"
+        app:layout_constraintLeft_toRightOf="@+id/helpGoalTitle"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/helpGoalTitle"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp" />
+
+    <TextView
+        android:id="@+id/helpGoalTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Goal:"
+        android:textColor="@color/primary_text"
+        android:textSize="30sp"
+        android:textStyle="bold"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/helpTitle" /-->
+
+    <RelativeLayout
+        android:id="@+id/relativeLayoutGoal"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:background="@color/colorAccent"
+        android:padding="8dp"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/helpTitle">
+
+        <TextView
+            android:id="@+id/helpGoalTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:text="Goal:"
+            android:textColor="@color/primary_text"
+            android:textSize="30sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/helpGoal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_marginLeft="8dp"
+            android:layout_toRightOf="@+id/helpGoalTitle"
+            android:text="Guess the song title by collecting its lyrics. Exploring George Square Campus is a bonus."
+            android:textColor="@color/primary_text"
+            android:textSize="20sp" />
+    </RelativeLayout>
+
+    <!--Using scroll view so smaller screens can see the instructions too -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="500dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="10dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/relativeLayoutGoal">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@android:color/white"
+            android:padding="8dp"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent">
+
+            <TextView
+                android:id="@+id/helpLyricsClassTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Lyrics Classifications:"
+                android:textColor="@color/primary_text"
+                android:textSize="30sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/markColumn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/helpLyricsClassTitle"
+                android:layout_marginTop="8dp"
+                android:text="Icon"
+                android:textColor="@color/primary_text"
+                android:textSize="25sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/classColumn"
+                android:layout_width="160dp"
+                android:layout_height="wrap_content"
+                android:layout_alignLeft="@+id/unclassifiedText"
+                android:layout_below="@+id/helpLyricsClassTitle"
+                android:layout_marginTop="8dp"
+                android:gravity="center"
+                android:text="Classification"
+                android:textColor="@color/primary_text"
+                android:textSize="25sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/usedIn"
+                android:layout_width="90dp"
+                android:layout_height="wrap_content"
+                android:layout_alignLeft="@+id/unclassifiedDesc"
+                android:layout_below="@+id/helpLyricsClassTitle"
+                android:layout_marginTop="8dp"
+                android:gravity="center"
+                android:text="Used in"
+                android:textColor="@color/primary_text"
+                android:textSize="25sp"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/unclassifiedMark"
+                style="@style/classesImagesHelp"
+                android:layout_below="@+id/markColumn"
+                app:srcCompat="@drawable/unclassified" />
+
+            <TextView
+                android:id="@+id/unclassifiedText"
+                style="@style/classesTextHelp"
+                android:layout_alignBottom="@id/unclassifiedMark"
+                android:layout_alignTop="@+id/unclassifiedMark"
+                android:layout_toRightOf="@+id/unclassifiedMark"
+                android:text="Unclassified" />
+
+            <TextView
+                android:id="@+id/unclassifiedDesc"
+                style="@style/classesDescHelp"
+                android:layout_alignBottom="@id/unclassifiedMark"
+                android:layout_alignTop="@+id/unclassifiedMark"
+                android:layout_toRightOf="@+id/unclassifiedText"
+                android:text="Painful" />
+
+            <ImageView
+                android:id="@+id/boringdMark"
+                style="@style/classesImagesHelp"
+                android:layout_below="@+id/unclassifiedMark"
+                app:srcCompat="@drawable/boring" />
+
+            <TextView
+                android:id="@+id/boringText"
+                style="@style/classesTextHelp"
+                android:layout_alignBottom="@id/boringdMark"
+                android:layout_alignTop="@+id/boringdMark"
+                android:layout_toRightOf="@+id/boringdMark"
+                android:text="Boring" />
+
+            <TextView
+                android:id="@+id/boringDesc"
+                style="@style/classesDescHelp"
+                android:layout_alignBottom="@id/boringdMark"
+                android:layout_alignTop="@+id/boringdMark"
+                android:layout_toRightOf="@+id/boringText"
+                android:text="(Very) Easy, Medium, Hard" />
+
+            <ImageView
+                android:id="@+id/notboringdMark"
+                style="@style/classesImagesHelp"
+                android:layout_below="@+id/boringdMark"
+                app:srcCompat="@drawable/notboring" />
+
+            <TextView
+                android:id="@+id/notboringText"
+                style="@style/classesTextHelp"
+                android:layout_alignBottom="@id/notboringdMark"
+                android:layout_alignTop="@+id/notboringdMark"
+                android:layout_toRightOf="@+id/notboringdMark"
+                android:text="Not Boring" />
+
+            <TextView
+                android:id="@+id/notboringDesc"
+                style="@style/classesDescHelp"
+                android:layout_alignBottom="@id/notboringdMark"
+                android:layout_alignTop="@+id/notboringdMark"
+                android:layout_toRightOf="@+id/notboringText"
+                android:text="(Very) Easy, Medium, Hard" />
+
+            <ImageView
+                android:id="@+id/interestingMark"
+                style="@style/classesImagesHelp"
+                android:layout_below="@+id/notboringdMark"
+                app:srcCompat="@drawable/interesting" />
+
+            <TextView
+                android:id="@+id/interestingText"
+                style="@style/classesTextHelp"
+                android:layout_alignBottom="@id/interestingMark"
+                android:layout_alignTop="@+id/interestingMark"
+                android:layout_toRightOf="@+id/interestingMark"
+                android:text="Interesting" />
+
+            <TextView
+                android:id="@+id/interestingDesc"
+                style="@style/classesDescHelp"
+                android:layout_alignBottom="@id/interestingMark"
+                android:layout_alignTop="@+id/interestingMark"
+                android:layout_toRightOf="@+id/interestingText"
+                android:text="(Very) Easy, Medium" />
+
+            <ImageView
+                android:id="@+id/veryinterestingMark"
+                style="@style/classesImagesHelp"
+                android:layout_below="@+id/interestingMark"
+                app:srcCompat="@drawable/veryinteresting" />
+
+            <TextView
+                android:id="@+id/veryinterestingText"
+                style="@style/classesTextHelp"
+                android:layout_alignBottom="@id/veryinterestingMark"
+                android:layout_alignTop="@+id/veryinterestingMark"
+                android:layout_toRightOf="@+id/veryinterestingMark"
+                android:text="Very Interesting" />
+
+            <TextView
+                android:id="@+id/veryinterestingDesc"
+                style="@style/classesDescHelp"
+                android:layout_alignBottom="@id/veryinterestingMark"
+                android:layout_alignTop="@+id/veryinterestingMark"
+                android:layout_toRightOf="@+id/veryinterestingText"
+                android:text="(Very) Easy" />
+
+        </RelativeLayout>
+    </ScrollView>
+
+
+    <!--TableLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/helpLyricsClassTitle"
+        app:layout_goneMarginLeft="16dp"
+        app:layout_goneMarginRight="16dp"
+        android:layout_marginTop="8dp">
+
+        <TableRow>
+            <TextView
+                android:layout_column="1"
+                android:text="Open..."
+                android:padding="3dip" />
+            <TextView
+                android:text="Ctrl-O"
+                android:gravity="right"
+                android:padding="3dip" />
+        </TableRow>
+
+        <TableRow>
+            <TextView
+                android:layout_column="1"
+                android:text="Save..."
+                android:padding="3dip" />
+            <TextView
+                android:text="Ctrl-S"
+                android:gravity="right"
+                android:padding="3dip" />
+        </TableRow>
+
+        <TableRow>
+            <TextView
+                android:layout_column="1"
+                android:text="Save As..."
+                android:padding="3dip" />
+            <TextView
+                android:text="Ctrl-Shift-S"
+                android:gravity="right"
+                android:padding="3dip" />
+        </TableRow>
+
+        <View
+            android:layout_height="2dip"
+            android:background="#FF909090" />
+
+        <TableRow>
+            <TextView
+                android:text="X"
+                android:padding="3dip" />
+            <TextView
+                android:text="Import..."
+                android:padding="3dip" />
+        </TableRow>
+
+        <TableRow>
+            <TextView
+                android:text="X"
+                android:padding="3dip" />
+            <TextView
+                android:text="Export..."
+                android:padding="3dip" />
+            <TextView
+                android:text="Ctrl-E"
+                android:gravity="right"
+                android:padding="3dip" />
+        </TableRow>
+
+        <View
+            android:layout_height="2dip"
+            android:background="#FF909090" />
+
+        <TableRow>
+            <TextView
+                android:layout_column="1"
+                android:text="Quit"
+                android:padding="3dip" />
+        </TableRow>
+
+    </TableLayout-->
+
+</android.support.constraint.ConstraintLayout>

@@ -10,7 +10,7 @@
     <string name="cancel">cancel</string>
     <string name="ok">ok</string>
     <string name="dialog_lyric_title">Lyric selected</string>
-    <string name="dialog_lyric_message">Select from the options below. Revealing a lyric without collecting it, results in the deduction of the points shown.</string>
+    <string name="dialog_lyric_message">Select from the options below.</string>
     <string name="collect">Collect</string>
     <string name="reveal">Reveal</string>
     <string-array name="difficulties">
@@ -24,8 +24,6 @@
         <item>Use only WiFi</item>
         <item>Use Data &amp; WiFi</item>
     </string-array>
-
-
 
 
     <!-- Strings related to Settings -->
@@ -126,7 +124,7 @@
     <string name="unexpected_lyric">Lyric is corrupted :(</string>
     <string name="lyric_text_not_loaded">Lyric cannot be loaded your check connection</string>
     <string name="lyrics_connection_error">Lyrics not loaded. Check your connection.</string>
-    <string name="distance_image_description">Distance walked: </string>
+    <string name="distance_image_description">Distance walked this song: </string>
     <string name="dialog_skip_song">Are you sure that you want to skip this song? (-1000 points)</string>
     <string name="dialog_skip_song_title">Skip Song</string>
     <string name="skip">Skip</string>

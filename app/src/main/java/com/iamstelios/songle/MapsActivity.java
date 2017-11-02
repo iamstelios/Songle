@@ -26,6 +26,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -61,13 +62,15 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
 
+import static java.lang.Math.round;
+
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener, GoogleMap.OnMarkerClickListener {
     private static final String TAG = MapsActivity.class.getSimpleName();
     //TODO Callibrate distance
-    private static final float COLLECTION_DISTANCE_MAXIMUM = 20;
+    private static final float COLLECTION_DISTANCE_MAXIMUM = 25;
 
     private GoogleMap mMap;
 
@@ -93,21 +96,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private float totalDistance;
 
     //Used to redirect the user to the video of the song he found
-    public static void watchYoutubeVideo(Context context, String link){
-        if(!link.contains("https://youtu.be/")){
-            Log.e(TAG,"Youtube link not in correct problem");
+    public static void watchYoutubeVideo(Context context, String link) {
+        if (!link.contains("https://youtu.be/")) {
+            Log.e(TAG, "Youtube link not in correct problem");
             Toast.makeText(context, "Sorry, there was a problem loading the video.", Toast.LENGTH_SHORT).show();
             return;
         }
-        String id = link.replace("https://youtu.be/","");
+        String id = link.replace("https://youtu.be/", "");
         Intent appIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube:" + id));
         Intent webIntent = new Intent(Intent.ACTION_VIEW,
                 Uri.parse("http://www.youtube.com/watch?v=" + id));
         try {
             context.startActivity(appIntent);
-            Log.i(TAG,"User redirected to Youtube app");
+            Log.i(TAG, "User redirected to Youtube app");
         } catch (ActivityNotFoundException ex) {
-            Log.i(TAG,"User redirected to broswer to watch video");
+            Log.i(TAG, "User redirected to broswer to watch video");
             context.startActivity(webIntent);
         }
     }
@@ -129,14 +132,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             put("veryinteresting", 50);
             put("interesting", 40);
             put("notboring", 25);
-            put("boring", 50);
+            put("boring", 10);
             put("unclassified", 200);
         }
     };
 
     private void updateDistanceText(float songDistance) {
         TextView songDistanceText = findViewById(R.id.songDistanceText);
-        songDistanceText.setText(String.valueOf(songDistance));
+        songDistanceText.setText(String.valueOf(round(songDistance)) + "m");
     }
 
     private void updateDistance(Location location) {
@@ -146,7 +149,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         double distanceToLast = location.distanceTo(mLastLocation);
         // if less than 10 metres, do not record
         if (distanceToLast < 10.00) {
-            Log.i(TAG, "updateDistance: Values too close, so not used.");
+            Log.i(TAG, "updateDistance: Distance too close, so not used.");
         } else {
             SharedPreferences.Editor editor = getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE).edit();
             songDistance += distanceToLast;
@@ -179,6 +182,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         scoreText.setText(String.valueOf(points));
         SharedPreferences.Editor editor = getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE).edit();
         editor.putInt(MainActivity.POINTS_KEY, points);
+
+        //Check if highscore
+        SharedPreferences prefs = getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE);
+        int highscore = prefs.getInt(MainActivity.HIGHSCORE_KEY, 0);
+
+        if(highscore<points){
+            Log.i(TAG, "New Highscore:"+points);
+            editor.putInt(MainActivity.HIGHSCORE_KEY,points);
+        }
         editor.apply();
     }
 
@@ -213,8 +225,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             Intent intent = new Intent(MapsActivity.this, MainActivity.class);
             intent.putExtra("artist", song.artist);
             intent.putExtra("title", song.title);
-            intent.putExtra("link",song.link);
-            intent.putExtra("skipped",skipped);
+            intent.putExtra("link", song.link);
+            intent.putExtra("skipped", skipped);
             startActivity(intent);
             //TODO CHECK IF RETURN NEEDED
             return;
@@ -223,22 +235,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         AlertDialog.Builder builder = new AlertDialog.Builder(MapsActivity.this);
         // Message different when user skipping song
         // (doesn't get to see the name of the song and  the video)
-        builder.setMessage(skipped?"You've skipped the song. \nYou've walked " +
-                songDistance + " meters failing to guess the song.":
+        builder.setMessage(skipped ? "You've skipped the song. \nYou've walked " +
+                songDistance + " meters failing to guess the song." :
                 "You've progressed to the next song! \nYou've walked " +
-                        songDistance + " meters trying to guess: "+song.artist+" - "+song.title+".")
-                .setTitle(skipped?"Skipped song :(":"Congrats!");
+                        songDistance + " meters trying to guess: " + song.artist + " - " + song.title + ".")
+                .setTitle(skipped ? "Skipped song :(" : "Congrats!");
         builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
                 // User clicked OK button
                 //Do Nothing
             }
         });
-        if(!skipped){
+        if (!skipped) {
             builder.setNegativeButton("Listen on Youtube", new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int id) {
                     // User watch to watch video youtube
-                    watchYoutubeVideo(getInstance(),song.link);
+                    watchYoutubeVideo(getInstance(), song.link);
                 }
             });
         }
@@ -398,6 +410,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             //String that saves the guess
                             String submission = input.getText().toString();
                             Log.i(TAG, "User submitted song: " + submission);
+                            //TODO: Add the string that ignores the parenthesis substring
                             if (submission.equalsIgnoreCase(song.title)) {
                                 //Correct guess
                                 progressSong(song, false);
@@ -474,6 +487,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 Intent intent = new Intent(MapsActivity.this, LyricsActivity.class);
                 intent.putStringArrayListExtra(WORDS_FOUND_KEY, wordsFound);
                 startActivity(intent);
+            }
+        });
+
+        FloatingActionButton location_button = findViewById(R.id.locationButton);
+        location_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mLastLocation == null) {
+                    Log.e(TAG, "User tried to zoom to his location with no last location");
+                    Toast.makeText(MapsActivity.this, "Please open location services before trying to zoom to your location", Toast.LENGTH_SHORT).show();
+                } else {
+                    Log.i(TAG, "Zoommed map to user's location");
+                    LatLng latlng = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latlng, 17.5f));
+                }
             }
         });
     }
@@ -610,7 +638,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         builder.setMessage(R.string.dialog_lyric_message)
                 .setTitle(R.string.dialog_lyric_title);
         //Notice Neutral is clicking collect, negative is revealing and positive is canceling
-        builder.setNeutralButton(R.string.collect, new DialogInterface.OnClickListener() {
+        builder.setNeutralButton(getString(R.string.collect) + "(+" + pointsToScore.get(lyricClassification)+")", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
                 //User wants to collect lyric
                 if (distance <= COLLECTION_DISTANCE_MAXIMUM) {
@@ -632,7 +660,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         //TODO CHECK WHY IT R.string.reveal DOESNT WORK
         //String revealMessage = R.string.reveal + "(-" + pointsToDeduct.get(lyricClassification) + ")";
-        String revealMessage = "Reveal(-" + pointsToDeduct.get(lyricClassification) + ")";
+        String revealMessage = getString(R.string.reveal) + "(-" + pointsToDeduct.get(lyricClassification) + ")";
         builder.setNegativeButton(revealMessage, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
                 //User wants to reveal lyric
@@ -641,7 +669,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 updateScore(points);
                 //TODO add message with the actual lyric
                 Toast.makeText(MapsActivity.this, "Yay! You've revealed: " + lyricToWord(lyricName), Toast.LENGTH_LONG).show();
-                Log.i(TAG, "User reveal lyric " + lyricName + " and deducted " +
+                Log.i(TAG, "User revealed lyric " + lyricName + " and deducted " +
                         pointsToDeduct.get(lyricClassification) + " points.");
                 marker.remove();
             }
@@ -696,7 +724,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             // in a raw resource file.
             boolean success = googleMap.setMapStyle(
                     MapStyleOptions.loadRawResourceStyle(
-                            this, R.raw.style_json));
+                            this, R.raw.map_style_json));
 
             if (!success) {
                 Log.e(TAG, "Style parsing failed.");
@@ -723,6 +751,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
+
     private void locationButtonInitializer() {
         try {
             // Visualise current position with a small blue circle
@@ -731,8 +760,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             Log.e(TAG, se.getMessage());
             Log.e(TAG, "Security exception thrown [onMapReady]");
         }
+        //TODO delete or enable?
         // Add ``My location'' button to the user interface
-        mMap.getUiSettings().setMyLocationButtonEnabled(true);
+        //mMap.getUiSettings().setMyLocationButtonEnabled(true);
+        mMap.getUiSettings().setMyLocationButtonEnabled(false);
     }
 
     /*

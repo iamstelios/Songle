@@ -38,6 +38,4 @@ public class LyricsActivity extends AppCompatActivity {
         listView.setAdapter(adapter);
     }
 
-
-
 }
