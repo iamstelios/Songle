@@ -114,7 +114,7 @@
     <string name="first_song_number">01</string>
     <string name="difficulty_easy">5</string>
     <string name="score_image_description">Score: </string>
-    <string name="dialog_submit_message">Correct: +500 points. \nWrong: -10 points.</string>
+    <string name="dialog_submit_message">Correct: +500 points. \nWrong: -100 points.</string>
     <string name="dialog_submit_title">Guess the song</string>
     <string name="submit">Submit</string>
     <string name="dialog_complete_title">Congratulations!</string>

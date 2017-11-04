@@ -16,6 +16,8 @@ import android.widget.Toast;
 import java.util.HashSet;
 import java.util.Locale;
 
+import static java.lang.Math.round;
+
 public class MainActivity extends AppCompatActivity {
 
     //private static final int REQUEST_PERMISSION_WRITE = 1001;
@@ -34,6 +36,8 @@ public class MainActivity extends AppCompatActivity {
     public static final String TOTAL_DIST_KEY = "total_distance_key";
     public static final String HIGHSCORE_KEY = "highscore_key";
     public static final String SONGS_FOUND_KEY = "SONGS_FOUND_KEY";
+    public static final String CURRENT_SONGS_FOUND = "current_songs_found";
+    public static final String CURRENT_SONGS_SKIPPED = "current_songs_skipped";
 
     public static int STARTING_POINTS = 500;
 
@@ -85,6 +89,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         difficulty = String.valueOf(which + 1);
+                        //Resetting the values of the game
                         SharedPreferences.Editor editor = getSharedPreferences(USER_PREFS, MODE_PRIVATE).edit();
                         editor.putString(DIFFICULTY_KEY, difficulty);
                         //Starting for the first song if it's a new game
@@ -93,6 +98,9 @@ public class MainActivity extends AppCompatActivity {
                         editor.putStringSet(LYRICS_FOUND_KEY, new HashSet<String>());
                         editor.putFloat(SONG_DIST_KEY,0);
                         editor.putInt(POINTS_KEY, STARTING_POINTS);
+                        editor.putInt(CURRENT_SONGS_FOUND,0);
+                        editor.putInt(CURRENT_SONGS_SKIPPED,0);
+
                         editor.apply();
                         Toast.makeText(MainActivity.this, R.string.new_game_toast, Toast.LENGTH_SHORT).show();
                         Log.i(TAG, "Started a new game");
@@ -252,13 +260,14 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 SharedPreferences prefs = getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE);
-                float totalDistance = prefs.getFloat(MainActivity.TOTAL_DIST_KEY,0);
                 int highscore = prefs.getInt(MainActivity.HIGHSCORE_KEY, 0);
                 int songsFound = prefs.getInt(MainActivity.SONGS_FOUND_KEY, 0);
+                prefs = getSharedPreferences(MainActivity.GLOBAL_PREFS, MODE_PRIVATE);
+                float totalDistance = prefs.getFloat(MainActivity.TOTAL_DIST_KEY, 0);
                 AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
                 builder.setTitle("Your stats");
                 builder.setMessage("Total distance travelled: " +
-                        String.format(Locale.ENGLISH,"%.0f",totalDistance) +"m \n\nHighest score: "
+                        round(totalDistance) +"m \n\nHighest score: "
                         + highscore + "\n\nNumber of songs found: " + songsFound);
                 AlertDialog dialog = builder.create();
                 dialog.show();

@@ -22,12 +22,8 @@ import android.support.v7.app.AlertDialog;
 import android.text.InputType;
 import android.util.Log;
 import android.util.Xml;
-import android.view.Gravity;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageButton;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -92,6 +88,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private ArrayList<String[]> allWords;
     private final String WORDS_URL = "http://www.inf.ed.ac.uk/teaching/courses/selp/data/songs/%s/words.txt";
     public static final String WORDS_FOUND_KEY = "words_found_key";
+    private int songsFound;
+    private int songsSkipped;
     private float songDistance;
     private float totalDistance;
 
@@ -137,7 +135,36 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     };
 
-    private void updateDistanceText(float songDistance) {
+    private void updateSongsFoundText(){
+        TextView songsFoundText = findViewById(R.id.songsFoundText);
+        songsFoundText.setText(String.valueOf(songsFound));
+    }
+
+    //Increments the number of songs found
+    private void addSongsFound(){
+        SharedPreferences.Editor editor = getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE).edit();
+        songsFound++;
+        editor.putInt(MainActivity.CURRENT_SONGS_FOUND,songsFound);
+        editor.apply();
+        updateSongsFoundText();
+    }
+
+    private void updateSongsSkippedText(){
+        TextView songsSkippedText = findViewById(R.id.songsSkippedText);
+        songsSkippedText.setText(String.valueOf(songsSkipped));
+    }
+
+    //Increments the number of songs skipped
+    private void addSongsSkipped(){
+        SharedPreferences.Editor editor = getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE).edit();
+        songsSkipped++;
+        editor.putInt(MainActivity.CURRENT_SONGS_SKIPPED,songsSkipped);
+        editor.apply();
+        updateSongsSkippedText();
+    }
+
+
+    private void updateDistanceText() {
         TextView songDistanceText = findViewById(R.id.songDistanceText);
         songDistanceText.setText(String.valueOf(round(songDistance)) + "m");
     }
@@ -155,11 +182,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             songDistance += distanceToLast;
             editor.putFloat(MainActivity.SONG_DIST_KEY, songDistance);
             editor.apply();
+            //Open editor for global prefs to change total distance traveled
             editor = getSharedPreferences(MainActivity.GLOBAL_PREFS, MODE_PRIVATE).edit();
             totalDistance += distanceToLast;
             editor.putFloat(MainActivity.TOTAL_DIST_KEY, totalDistance);
             editor.apply();
-            updateDistanceText(songDistance);
+            updateDistanceText();
             Log.i(TAG, "Distances have been updated");
         }
     }
@@ -223,6 +251,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             editor.remove(MainActivity.POINTS_KEY);
             editor.remove(MainActivity.SONG_KEY);
             editor.remove(MainActivity.SONG_DIST_KEY);
+            editor.remove(MainActivity.CURRENT_SONGS_FOUND);
+            editor.remove(MainActivity.CURRENT_SONGS_SKIPPED);
             //Commit changes because we want to be sure the continue button
             // will be not be present in main activity
             editor.commit();
@@ -242,9 +272,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // Message different when user skipping song
         // (doesn't get to see the name of the song and  the video)
         builder.setMessage(skipped ? "You've skipped the song. \nYou've walked " +
-                songDistance + " meters failing to guess the song." :
+                round(songDistance) + " meters failing to guess the song." :
                 "You've progressed to the next song! \nYou've walked " +
-                        songDistance + " meters trying to guess: " + song.artist + " - " + song.title + ".")
+                        round(songDistance) + " meters trying to guess: " + song.artist + " - " + song.title + ".")
                 .setTitle(skipped ? "Skipped song :(" : "Congrats!");
         builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
@@ -270,6 +300,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             //Add the points to the player score
             points -= 1000;
             updateScore(points);
+            //Update the number of songs skipped
+            addSongsSkipped();
         } else {
             //Toast.makeText(this, "Congrats! You've progressed to the next song! You've walked " +
             //        songDistance + " meters trying to guess the song.", Toast.LENGTH_LONG).show();
@@ -277,6 +309,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             //Add the points to the player score
             points += 500;
             updateScore(points);
+            //Update the number of songs found
+            addSongsFound();
         }
 
         //Change the song number
@@ -288,7 +322,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         editor.apply();
 
         songDistance = 0;
-        updateDistanceText(songDistance);
+        updateDistanceText();
 
         //Clear map from placemarks
         mMap.clear();
@@ -361,11 +395,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         lyricsFound = prefs.getStringSet(MainActivity.LYRICS_FOUND_KEY, new HashSet<String>());
         points = prefs.getInt(MainActivity.POINTS_KEY, MainActivity.STARTING_POINTS);
         updateScore(points);
-
+        songsFound = prefs.getInt(MainActivity.CURRENT_SONGS_FOUND, 0);
+        updateSongsFoundText();
+        songsSkipped = prefs.getInt(MainActivity.CURRENT_SONGS_SKIPPED, 0);
+        updateSongsSkippedText();
         songDistance = prefs.getFloat(MainActivity.SONG_DIST_KEY, 0);
-        updateDistanceText(songDistance);
+        updateDistanceText();
         prefs = getSharedPreferences(MainActivity.GLOBAL_PREFS, MODE_PRIVATE);
         totalDistance = prefs.getFloat(MainActivity.TOTAL_DIST_KEY, 0);
+
 
         //String difficulty = getIntent().getExtras().getString(MainActivity.DIFFICULTY_KEY);
         Log.i(TAG, "Song Number: " + songNumber + " Difficulty: " + difficulty);
@@ -422,7 +460,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                 progressSong(song, false);
                             } else {
                                 //Wrong guess
-                                points -= 10;
+                                points -= 100;
                                 updateScore(points);
                                 Toast.makeText(MapsActivity.this, "Wrong Song :( Try Again.", Toast.LENGTH_SHORT).show();
                                 Log.i(TAG, "User guessed the wrong song.");
