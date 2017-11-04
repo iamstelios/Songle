@@ -14,6 +14,7 @@ import android.widget.ImageButton;
 import android.widget.Toast;
 
 import java.util.HashSet;
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -32,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
     public static final String SONG_DIST_KEY = "song_distance_key";
     public static final String TOTAL_DIST_KEY = "total_distance_key";
     public static final String HIGHSCORE_KEY = "highscore_key";
+    public static final String SONGS_FOUND_KEY = "SONGS_FOUND_KEY";
 
     public static int STARTING_POINTS = 500;
 
@@ -249,7 +251,17 @@ public class MainActivity extends AppCompatActivity {
         statsButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //gg;
+                SharedPreferences prefs = getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE);
+                float totalDistance = prefs.getFloat(MainActivity.TOTAL_DIST_KEY,0);
+                int highscore = prefs.getInt(MainActivity.HIGHSCORE_KEY, 0);
+                int songsFound = prefs.getInt(MainActivity.SONGS_FOUND_KEY, 0);
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                builder.setTitle("Your stats");
+                builder.setMessage("Total distance travelled: " +
+                        String.format(Locale.ENGLISH,"%.0f",totalDistance) +"m \n\nHighest score: "
+                        + highscore + "\n\nNumber of songs found: " + songsFound);
+                AlertDialog dialog = builder.create();
+                dialog.show();
             }
         });
 

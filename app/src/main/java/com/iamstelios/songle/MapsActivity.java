@@ -185,7 +185,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         //Check if highscore
         SharedPreferences prefs = getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE);
-        int highscore = prefs.getInt(MainActivity.HIGHSCORE_KEY, 0);
+        int highscore = prefs.getInt(MainActivity.HIGHSCORE_KEY, MainActivity.STARTING_POINTS);
 
         if(highscore<points){
             Log.i(TAG, "New Highscore:"+points);
@@ -208,6 +208,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         int currentSongNum = Integer.parseInt(song.number);
         //TODO: Make a test about this case
         SharedPreferences.Editor editor = getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE).edit();
+
+        //Increase Songs found statistic by 1
+        SharedPreferences prefs = getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE);
+        int songsFound = prefs.getInt(MainActivity.SONGS_FOUND_KEY, 0);
+        editor.putInt(MainActivity.SONGS_FOUND_KEY,songsFound+1);
+
         //Check if all the songs have been guesses
         if (currentSongNum >= songList.size()) {
             Log.i(TAG, "User completed the game!");
