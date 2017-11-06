@@ -114,8 +114,8 @@
     <string name="first_song_number">01</string>
     <string name="difficulty_easy">5</string>
     <string name="score_image_description">Score: </string>
-    <string name="dialog_submit_message">Correct: +500 points. \nWrong: -100 points.</string>
-    <string name="dialog_submit_title">Guess the song</string>
+    <!--string name="dialog_submit_message">Correct: +500 points. \nWrong: -100 points.</string-->
+    <string name="dialog_submit_title">Guess the Song</string>
     <string name="submit">Submit</string>
     <string name="dialog_complete_title">Congratulations!</string>
     <string name="dialog_complete_message">You\'ve passed all songs! Last guess\: </string>
@@ -125,7 +125,7 @@
     <string name="lyric_text_not_loaded">Lyric cannot be loaded your check connection</string>
     <string name="lyrics_connection_error">Lyrics not loaded. Check your connection.</string>
     <string name="distance_image_description">Distance walked this song: </string>
-    <string name="dialog_skip_song">Are you sure that you want to skip this song? (-1000 points)</string>
+    <!--string name="dialog_skip_song">Are you sure that you want to skip this song? (-750 points)</1string-->
     <string name="dialog_skip_song_title">Skip Song</string>
     <string name="skip">Skip</string>
     <string name="title_activity_lyrics">Lyrics Found</string>

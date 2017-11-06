@@ -268,7 +268,7 @@ public class MainActivity extends AppCompatActivity {
                 builder.setTitle("Your stats");
                 builder.setMessage("Total distance travelled: " +
                         round(totalDistance) +"m \n\nHighest score: "
-                        + highscore + "\n\nNumber of songs found: " + songsFound);
+                        + highscore + "\n\nTotal number of songs found: " + songsFound);
                 AlertDialog dialog = builder.create();
                 dialog.show();
             }

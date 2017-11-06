@@ -135,30 +135,50 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     };
 
-    private void updateSongsFoundText(){
+    private static final Map<String, Integer> submittingPointsToScore = new HashMap<String, Integer>() {
+        {
+            put("1", 1000);
+            put("2", 500);
+            put("3", 400);
+            put("4", 200);
+            put("5", 100);
+        }
+    };
+
+    private static final Map<String, Integer> submittingPointsToDeduct = new HashMap<String, Integer>() {
+        {
+            put("1", 200);
+            put("2", 100);
+            put("3", 80);
+            put("4", 50);
+            put("5", 20);
+        }
+    };
+
+    private void updateSongsFoundText() {
         TextView songsFoundText = findViewById(R.id.songsFoundText);
         songsFoundText.setText(String.valueOf(songsFound));
     }
 
     //Increments the number of songs found
-    private void addSongsFound(){
+    private void addSongsFound() {
         SharedPreferences.Editor editor = getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE).edit();
         songsFound++;
-        editor.putInt(MainActivity.CURRENT_SONGS_FOUND,songsFound);
+        editor.putInt(MainActivity.CURRENT_SONGS_FOUND, songsFound);
         editor.apply();
         updateSongsFoundText();
     }
 
-    private void updateSongsSkippedText(){
+    private void updateSongsSkippedText() {
         TextView songsSkippedText = findViewById(R.id.songsSkippedText);
         songsSkippedText.setText(String.valueOf(songsSkipped));
     }
 
     //Increments the number of songs skipped
-    private void addSongsSkipped(){
+    private void addSongsSkipped() {
         SharedPreferences.Editor editor = getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE).edit();
         songsSkipped++;
-        editor.putInt(MainActivity.CURRENT_SONGS_SKIPPED,songsSkipped);
+        editor.putInt(MainActivity.CURRENT_SONGS_SKIPPED, songsSkipped);
         editor.apply();
         updateSongsSkippedText();
     }
@@ -215,9 +235,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SharedPreferences prefs = getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE);
         int highscore = prefs.getInt(MainActivity.HIGHSCORE_KEY, MainActivity.STARTING_POINTS);
 
-        if(highscore<points){
-            Log.i(TAG, "New Highscore:"+points);
-            editor.putInt(MainActivity.HIGHSCORE_KEY,points);
+        if (highscore < points) {
+            Log.i(TAG, "New Highscore:" + points);
+            editor.putInt(MainActivity.HIGHSCORE_KEY, points);
         }
         editor.apply();
     }
@@ -230,6 +250,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         editor.apply();
     }
 
+    //Calculate bonus points from distance
+    private int bonusPoints(float distance){
+        return round(distance/Integer.parseInt(difficulty));
+    }
+
 
     //Takes as a parameter the current song and progresses the game to the next song
     private void progressSong(final Song song, boolean skipped) {
@@ -240,7 +265,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //Increase Songs found statistic by 1
         SharedPreferences prefs = getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE);
         int songsFound = prefs.getInt(MainActivity.SONGS_FOUND_KEY, 0);
-        editor.putInt(MainActivity.SONGS_FOUND_KEY,songsFound+1);
+        editor.putInt(MainActivity.SONGS_FOUND_KEY, songsFound + 1);
 
         //Check if all the songs have been guesses
         if (currentSongNum >= songList.size()) {
@@ -272,9 +297,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // Message different when user skipping song
         // (doesn't get to see the name of the song and  the video)
         builder.setMessage(skipped ? "You've skipped the song. \nYou've walked " +
-                round(songDistance) + " meters failing to guess the song." :
+                round(songDistance) + "m failing to guess the song." :
                 "You've progressed to the next song! \nYou've walked " +
-                        round(songDistance) + " meters trying to guess: " + song.artist + " - " + song.title + ".")
+                        round(songDistance) + "m earning you " + bonusPoints(songDistance) +
+                        " bonus points trying to guess: " + song.artist + " - " + song.title + ".")
                 .setTitle(skipped ? "Skipped song :(" : "Congrats!");
         builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
@@ -297,8 +323,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             //Toast.makeText(this, "You've skipped the song :( You've walked " +
             //        songDistance + " meters failing to guess the song.", Toast.LENGTH_LONG).show();
             Log.i(TAG, "User guessed right and goes to the next song");
-            //Add the points to the player score
-            points -= 1000;
+            //Remove the points to the player score
+            points -= submittingPointsToScore.get(difficulty);
             updateScore(points);
             //Update the number of songs skipped
             addSongsSkipped();
@@ -307,7 +333,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             //        songDistance + " meters trying to guess the song.", Toast.LENGTH_LONG).show();
             Log.i(TAG, "User guessed right and goes to the next song");
             //Add the points to the player score
-            points += 500;
+            points += submittingPointsToScore.get(difficulty) + bonusPoints(songDistance);
             updateScore(points);
             //Update the number of songs found
             addSongsFound();
@@ -439,7 +465,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     //Show a dialog that asks the user if user wants to submit the song
                     final AlertDialog.Builder builder = new AlertDialog.Builder(MapsActivity.this);
                     //Set the message and title of the dialog
-                    builder.setMessage(R.string.dialog_submit_message)
+                    builder.setMessage(String.format(Locale.ENGLISH, "Correct: +%d points. \nWrong: -%d points.", submittingPointsToScore.get(difficulty), submittingPointsToDeduct.get(difficulty)))
                             .setTitle(R.string.dialog_submit_title);
                     // Set up the input
                     final EditText input = new EditText(MapsActivity.this);
@@ -460,7 +486,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                 progressSong(song, false);
                             } else {
                                 //Wrong guess
-                                points -= 100;
+                                points -= submittingPointsToDeduct.get(difficulty);
                                 updateScore(points);
                                 Toast.makeText(MapsActivity.this, "Wrong Song :( Try Again.", Toast.LENGTH_SHORT).show();
                                 Log.i(TAG, "User guessed the wrong song.");
@@ -495,7 +521,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     //Show a dialog that asks the user if user wants to skip the song
                     final AlertDialog.Builder builder = new AlertDialog.Builder(MapsActivity.this);
                     //Set the message and title of the dialog
-                    builder.setMessage(R.string.dialog_skip_song)
+                    builder.setMessage(String.format(Locale.ENGLISH, "Are you sure that you want to skip this song? (-%d points)", submittingPointsToScore.get(difficulty)))
                             .setTitle(R.string.dialog_skip_song_title);
                     // Setting up the submission and cancellation buttons
                     builder.setPositiveButton(R.string.skip, new DialogInterface.OnClickListener() {
@@ -682,7 +708,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         builder.setMessage(R.string.dialog_lyric_message)
                 .setTitle(R.string.dialog_lyric_title);
         //Notice Neutral is clicking collect, negative is revealing and positive is canceling
-        builder.setNeutralButton(getString(R.string.collect) + "(+" + pointsToScore.get(lyricClassification)+")", new DialogInterface.OnClickListener() {
+        builder.setNeutralButton(getString(R.string.collect) + "(+" + pointsToScore.get(lyricClassification) + ")", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
                 //User wants to collect lyric
                 if (distance <= COLLECTION_DISTANCE_MAXIMUM) {
