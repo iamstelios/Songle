@@ -118,7 +118,7 @@
     <string name="dialog_submit_title">Guess the Song</string>
     <string name="submit">Submit</string>
     <string name="dialog_complete_title">Congratulations!</string>
-    <string name="dialog_complete_message">You\'ve passed all songs! Last guess\: </string>
+    <!--string name="dialog_complete_message">You\'ve passed all songs! Last guess\: </string-->
     <string name="subtitle_main">Test your music knowledge while exploring George Square Campus</string>
     <string name="songs_not_loaded_error">Songs not loaded. Check your connection.</string>
     <string name="unexpected_lyric">Lyric is corrupted :(</string>
@@ -129,6 +129,8 @@
     <string name="dialog_skip_song_title">Skip Song</string>
     <string name="skip">Skip</string>
     <string name="title_activity_lyrics">Lyrics Found</string>
-    <string name="dialog_complete_message_skipped">Try to pass the game in a harder difficulty without skipping songs for extra challenge.</string>
+    <!--string name="dialog_complete_message_skipped">Game Completed! \nTry to pass the game in a harder difficulty without skipping songs for extra challenge.</string-->
+    <string name="dialog_complete_message_skipped">Game Completed!</string>
+    <string name="dialog_complete_message">Game completed! Last guess:</string>
 
 </resources>

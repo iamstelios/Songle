@@ -232,7 +232,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         editor.putInt(MainActivity.POINTS_KEY, points);
 
         //Check if highscore
-        SharedPreferences prefs = getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE);
+        SharedPreferences prefs = getSharedPreferences(MainActivity.GLOBAL_PREFS, MODE_PRIVATE);
         int highscore = prefs.getInt(MainActivity.HIGHSCORE_KEY, MainActivity.STARTING_POINTS);
 
         if (highscore < points) {
@@ -262,12 +262,34 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //TODO: Make a test about this case
         SharedPreferences.Editor editor = getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE).edit();
 
-        //Increase Songs found statistic by 1
-        SharedPreferences prefs = getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE);
-        int songsFound = prefs.getInt(MainActivity.SONGS_FOUND_KEY, 0);
-        editor.putInt(MainActivity.SONGS_FOUND_KEY, songsFound + 1);
+        if (skipped) {
+            //Toast.makeText(this, "You've skipped the song :( You've walked " +
+            //        songDistance + " meters failing to guess the song.", Toast.LENGTH_LONG).show();
+            Log.i(TAG, "User skipped song");
+            //Remove the points to the player score
+            points -= submittingPointsToScore.get(difficulty);
+            updateScore(points);
+            //Update the number of songs skipped
+            addSongsSkipped();
+        } else {
+            //Toast.makeText(this, "Congrats! You've progressed to the next song! You've walked " +
+            //        songDistance + " meters trying to guess the song.", Toast.LENGTH_LONG).show();
+            Log.i(TAG, "User guessed right");
+            //Add the points to the player score
+            points += submittingPointsToScore.get(difficulty) + bonusPoints(songDistance);
+            updateScore(points);
+            //Update the number of songs found
+            addSongsFound();
+
+            //Increase Total Songs found statistic by 1
+            SharedPreferences prefs = getSharedPreferences(MainActivity.GLOBAL_PREFS, MODE_PRIVATE);
+            int totalSongsFound = prefs.getInt(MainActivity.TOTAL_SONGS_FOUND_KEY, 0);
+            SharedPreferences.Editor global_editor = getSharedPreferences(MainActivity.GLOBAL_PREFS, MODE_PRIVATE).edit();
+            global_editor.putInt(MainActivity.TOTAL_SONGS_FOUND_KEY, totalSongsFound + 1);
+        }
 
         //Check if all the songs have been guesses
+        //TODO add a function for completition condition boolean
         if (currentSongNum >= songList.size()) {
             Log.i(TAG, "User completed the game!");
 
@@ -287,6 +309,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             intent.putExtra("artist", song.artist);
             intent.putExtra("title", song.title);
             intent.putExtra("link", song.link);
+            intent.putExtra("points", points);
+            intent.putExtra("songsFound",songsFound);
+            intent.putExtra("songsSkipped",songsSkipped);
             intent.putExtra("skipped", skipped);
             startActivity(intent);
             //TODO CHECK IF RETURN NEEDED
@@ -319,25 +344,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         AlertDialog dialog = builder.create();
         dialog.show();
 
-        if (skipped) {
-            //Toast.makeText(this, "You've skipped the song :( You've walked " +
-            //        songDistance + " meters failing to guess the song.", Toast.LENGTH_LONG).show();
-            Log.i(TAG, "User guessed right and goes to the next song");
-            //Remove the points to the player score
-            points -= submittingPointsToScore.get(difficulty);
-            updateScore(points);
-            //Update the number of songs skipped
-            addSongsSkipped();
-        } else {
-            //Toast.makeText(this, "Congrats! You've progressed to the next song! You've walked " +
-            //        songDistance + " meters trying to guess the song.", Toast.LENGTH_LONG).show();
-            Log.i(TAG, "User guessed right and goes to the next song");
-            //Add the points to the player score
-            points += submittingPointsToScore.get(difficulty) + bonusPoints(songDistance);
-            updateScore(points);
-            //Update the number of songs found
-            addSongsFound();
-        }
 
         //Change the song number
         songNumber = String.format(Locale.ENGLISH, "%02d", currentSongNum + 1);
@@ -465,7 +471,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     //Show a dialog that asks the user if user wants to submit the song
                     final AlertDialog.Builder builder = new AlertDialog.Builder(MapsActivity.this);
                     //Set the message and title of the dialog
-                    builder.setMessage(String.format(Locale.ENGLISH, "Correct: +%d points. \nWrong: -%d points.", submittingPointsToScore.get(difficulty), submittingPointsToDeduct.get(difficulty)))
+                    builder.setMessage(String.format(Locale.ENGLISH, "Enter the title of the song. \nCorrect: +%d points. \nWrong: -%d points.", submittingPointsToScore.get(difficulty), submittingPointsToDeduct.get(difficulty)))
                             .setTitle(R.string.dialog_submit_title);
                     // Set up the input
                     final EditText input = new EditText(MapsActivity.this);

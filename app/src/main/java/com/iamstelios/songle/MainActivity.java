@@ -35,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
     public static final String SONG_DIST_KEY = "song_distance_key";
     public static final String TOTAL_DIST_KEY = "total_distance_key";
     public static final String HIGHSCORE_KEY = "highscore_key";
-    public static final String SONGS_FOUND_KEY = "SONGS_FOUND_KEY";
+    public static final String TOTAL_SONGS_FOUND_KEY = "SONGS_FOUND_KEY";
     public static final String CURRENT_SONGS_FOUND = "current_songs_found";
     public static final String CURRENT_SONGS_SKIPPED = "current_songs_skipped";
 
@@ -54,11 +54,16 @@ public class MainActivity extends AppCompatActivity {
         MainActivity.instance = instance;
     }
 
-    private void showCompletedGameDialog(String artist, String title, final String link, boolean skipped){
+    private void showCompletedGameDialog(String artist, String title, final String link, int points, int songsFound, int songsSkipped, boolean skipped) {
+        int totalSongs = songsFound + songsSkipped;
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.getInstance());
         //Message different when user skipped last song
-        builder.setMessage(skipped?getString(R.string.dialog_complete_message_skipped):
-                getString(R.string.dialog_complete_message)+artist+" - "+title)
+        builder.setMessage(skipped ? getString(R.string.dialog_complete_message_skipped) +
+                "\nFinal score: " + points + "\n You've guessed " + songsFound + " out of " +
+                totalSongs + " songs." :
+                getString(R.string.dialog_complete_message) + " " + artist + " - " + title +
+                        "\n Final score: " + points + "\n You've guessed " + songsFound +
+                        " out of " + totalSongs + " songs.")
                 .setTitle(R.string.dialog_complete_title);
         builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
@@ -66,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
                 //Do Nothing
             }
         });
-        if(!skipped){
+        if (!skipped) {
             builder.setNegativeButton("Listen on Youtube", new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int id) {
                     // User watch to watch video youtube
@@ -96,10 +101,10 @@ public class MainActivity extends AppCompatActivity {
                         editor.putString(SONG_KEY, getString(R.string.first_song_number));
                         //Set the lyrics found to empty
                         editor.putStringSet(LYRICS_FOUND_KEY, new HashSet<String>());
-                        editor.putFloat(SONG_DIST_KEY,0);
+                        editor.putFloat(SONG_DIST_KEY, 0);
                         editor.putInt(POINTS_KEY, STARTING_POINTS);
-                        editor.putInt(CURRENT_SONGS_FOUND,0);
-                        editor.putInt(CURRENT_SONGS_SKIPPED,0);
+                        editor.putInt(CURRENT_SONGS_FOUND, 0);
+                        editor.putInt(CURRENT_SONGS_SKIPPED, 0);
 
                         editor.apply();
                         Toast.makeText(MainActivity.this, R.string.new_game_toast, Toast.LENGTH_SHORT).show();
@@ -149,17 +154,25 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = this.getIntent();
         /* Obtain String from Intent  */
         //TODO check case where I finish game so I have intent, then start new game, then press back
-        if(intent.hasExtra("artist")) {
+        if (intent.hasExtra("artist")) {
             //Assumming that if the intent has the artist extra
             // then it has the other extras too
             String artist = intent.getExtras().getString("artist");
             String title = intent.getExtras().getString("title");
             String link = intent.getExtras().getString("link");
+            int points = intent.getExtras().getInt("points");
+            int songsFound = intent.getExtras().getInt("songsFound");
+            int songsSkipped = intent.getExtras().getInt("songsSkipped");
             boolean skipped = intent.getExtras().getBoolean("skipped");
-            showCompletedGameDialog(artist,title,link,skipped);
+
+            showCompletedGameDialog(artist, title, link, points, songsFound, songsSkipped, skipped);
+
             intent.removeExtra("artist");
             intent.removeExtra("title");
             intent.removeExtra("link");
+            intent.removeExtra("points");
+            intent.removeExtra("songsFound");
+            intent.removeExtra("songsSkipped");
             intent.removeExtra("skipped");
         }
 
@@ -259,16 +272,15 @@ public class MainActivity extends AppCompatActivity {
         statsButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                SharedPreferences prefs = getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE);
+                SharedPreferences prefs = getSharedPreferences(MainActivity.GLOBAL_PREFS, MODE_PRIVATE);
                 int highscore = prefs.getInt(MainActivity.HIGHSCORE_KEY, 0);
-                int songsFound = prefs.getInt(MainActivity.SONGS_FOUND_KEY, 0);
-                prefs = getSharedPreferences(MainActivity.GLOBAL_PREFS, MODE_PRIVATE);
+                int totalSongsFound = prefs.getInt(MainActivity.TOTAL_SONGS_FOUND_KEY, 0);
                 float totalDistance = prefs.getFloat(MainActivity.TOTAL_DIST_KEY, 0);
                 AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
                 builder.setTitle("Your stats");
                 builder.setMessage("Total distance travelled: " +
-                        round(totalDistance) +"m \n\nHighest score: "
-                        + highscore + "\n\nTotal number of songs found: " + songsFound);
+                        round(totalDistance) + "m \n\nHighest score: "
+                        + highscore + "\n\nTotal number of songs found: " + totalSongsFound);
                 AlertDialog dialog = builder.create();
                 dialog.show();
             }

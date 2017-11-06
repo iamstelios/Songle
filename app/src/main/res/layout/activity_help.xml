@@ -131,7 +131,7 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/helpInstructionTitle"
                 android:layout_centerHorizontal="true"
-                android:text="To collect a lyric, click on it and choose collect. Lyrics can only be collected when you are near them. \n\nChoosing to reveal a lyric, decreases your score but lets you uncover a lyric from anywhere you're located. \n\nThe harder the difficulty you choose, the higher points you will earn. \n\nHint: Before trying to guess, collect enough lyrics, because guessing wrong will take a toll on your score."
+                android:text="►Collecting lyrics not only helps you guess the song, but also earns you points. The rarer the lyric the more points you get. Different lyric classifications (based on rarity) are explained at the bottom of the page. \n\n► To collect a lyric, click on it and choose collect. Lyrics can only be collected when you are near them. \n\n► Choosing to reveal a lyric, decreases your score but lets you uncover a lyric from anywhere you're located. \n\n► The bigger distances you cover, the more bonus points you'll get when successfully guessing the song. \n\n► If you get stuck, you can skip the song. However, you'll lose some points and the bonus from the distance travelled. \n\n► The harder the difficulty you choose, the higher points you will earn. \n\n► Hint: Before trying to guess, collect enough lyrics, because guessing wrong will take a toll on your score."
                 android:textColor="@color/primary_text"
                 android:textSize="16sp" />
         </RelativeLayout>
@@ -150,8 +150,50 @@
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/relativeLayoutInstructions"-->
+        <android.support.constraint.ConstraintLayout
+            android:id="@+id/constraintLayoutGameScreen"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:background="#30212121"
+            android:padding="8dp"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/relativeLayoutInstructions">
+
+            <TextView
+                android:id="@+id/helpGameScreenTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Game Screen:"
+                android:textColor="@color/primary_text"
+                android:textSize="30sp"
+                android:textStyle="bold"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <ImageView
+                android:id="@+id/helpGameScreenImage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:adjustViewBounds="true"
+                android:scaleType="fitCenter"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/helpGameScreenTitle"
+                app:srcCompat="@drawable/help_map_image" />
+
+        </android.support.constraint.ConstraintLayout>
 
         <RelativeLayout
+            android:id="@+id/relativeLayoutLyricsClass"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
@@ -163,7 +205,7 @@
             android:padding="8dp"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/relativeLayoutInstructions">
+            app:layout_constraintTop_toBottomOf="@+id/constraintLayoutGameScreen">
 
             <TextView
                 android:id="@+id/helpLyricsClassTitle"
@@ -322,6 +364,7 @@
                 android:text="(Very) Easy" />
 
         </RelativeLayout>
+
         <!--/ScrollView-->
 
 
