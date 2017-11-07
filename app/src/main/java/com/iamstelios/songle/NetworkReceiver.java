@@ -7,6 +7,7 @@ import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.util.Log;
+import android.widget.Toast;
 
 import static android.content.Context.MODE_PRIVATE;
 
@@ -41,6 +42,7 @@ public class NetworkReceiver extends BroadcastReceiver {
             MapsActivity.getInstance().runDownloads();
         } else {
             // No WiFi and no permission, or no network connection
+            Toast.makeText(context, "Please check your connection, for Songle to download the songs", Toast.LENGTH_SHORT).show();
             Log.i(TAG, "No connection");
         }
     }

@@ -230,16 +230,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         scoreText.setText(String.valueOf(points));
         SharedPreferences.Editor editor = getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE).edit();
         editor.putInt(MainActivity.POINTS_KEY, points);
-
+        editor.apply();
         //Check if highscore
         SharedPreferences prefs = getSharedPreferences(MainActivity.GLOBAL_PREFS, MODE_PRIVATE);
         int highscore = prefs.getInt(MainActivity.HIGHSCORE_KEY, MainActivity.STARTING_POINTS);
-
+        SharedPreferences.Editor global_editor = getSharedPreferences(MainActivity.GLOBAL_PREFS, MODE_PRIVATE).edit();
         if (highscore < points) {
             Log.i(TAG, "New Highscore:" + points);
-            editor.putInt(MainActivity.HIGHSCORE_KEY, points);
+            global_editor.putInt(MainActivity.HIGHSCORE_KEY, points);
         }
-        editor.apply();
+        global_editor.apply();
     }
 
     //Add a lyric and update the lyrics found in the preferences
@@ -251,8 +251,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     //Calculate bonus points from distance
-    private int bonusPoints(float distance){
-        return round(distance/Integer.parseInt(difficulty));
+    private int bonusPoints(float distance) {
+        return round(distance / Integer.parseInt(difficulty));
     }
 
 
@@ -283,9 +283,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             //Increase Total Songs found statistic by 1
             SharedPreferences prefs = getSharedPreferences(MainActivity.GLOBAL_PREFS, MODE_PRIVATE);
-            int totalSongsFound = prefs.getInt(MainActivity.TOTAL_SONGS_FOUND_KEY, 0);
+            int totalSongsFound = prefs.getInt(MainActivity.TOTAL_SONGS_FOUND_KEY, 0) + 1;
             SharedPreferences.Editor global_editor = getSharedPreferences(MainActivity.GLOBAL_PREFS, MODE_PRIVATE).edit();
-            global_editor.putInt(MainActivity.TOTAL_SONGS_FOUND_KEY, totalSongsFound + 1);
+            global_editor.putInt(MainActivity.TOTAL_SONGS_FOUND_KEY, totalSongsFound);
+            global_editor.apply();
         }
 
         //Check if all the songs have been guesses
@@ -310,8 +311,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             intent.putExtra("title", song.title);
             intent.putExtra("link", song.link);
             intent.putExtra("points", points);
-            intent.putExtra("songsFound",songsFound);
-            intent.putExtra("songsSkipped",songsSkipped);
+            intent.putExtra("songsFound", songsFound);
+            intent.putExtra("songsSkipped", songsSkipped);
             intent.putExtra("skipped", skipped);
             startActivity(intent);
             //TODO CHECK IF RETURN NEEDED
@@ -533,7 +534,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     builder.setPositiveButton(R.string.skip, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int id) {
-                            progressSong(song, true);
+                            //TODO add to all point reduction
+                            if (points - submittingPointsToScore.get(difficulty) >= 0) {
+                                progressSong(song, true);
+                            } else {
+                                Log.e(TAG, "Not enought points to skip song.");
+                                Toast.makeText(MapsActivity.this, "Not enough points to complete action.", Toast.LENGTH_SHORT).show();
+                            }
+
                         }
                     });
                     builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {

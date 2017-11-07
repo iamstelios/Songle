@@ -78,6 +78,12 @@
             style="@style/ButtonsMain"
             android:contentDescription="Highscores"
             app:srcCompat="@drawable/help" />
+
+        <ImageButton
+            android:id="@+id/MusicButton"
+            style="@style/ButtonsMain"
+            android:contentDescription="Music"
+            app:srcCompat="@drawable/music_on" />
     </LinearLayout>
 
 </android.support.constraint.ConstraintLayout>

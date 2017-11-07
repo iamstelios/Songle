@@ -8,13 +8,10 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
 import java.util.HashSet;
-import java.util.Locale;
 
 import static java.lang.Math.round;
 
@@ -38,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
     public static final String TOTAL_SONGS_FOUND_KEY = "SONGS_FOUND_KEY";
     public static final String CURRENT_SONGS_FOUND = "current_songs_found";
     public static final String CURRENT_SONGS_SKIPPED = "current_songs_skipped";
+    public static final String IS_MUSIC_ON = "is_music_on";
 
     public static int STARTING_POINTS = 500;
 
@@ -132,6 +130,26 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences prefs = getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE);
         return prefs.contains(DIFFICULTY_KEY);
     }
+    //Prepares the Music
+    private void prepareMusic(){
+        SharedPreferences prefs = getSharedPreferences(MainActivity.GLOBAL_PREFS, MODE_PRIVATE);
+        boolean isMusicOn =  prefs.getBoolean(IS_MUSIC_ON,true);
+        ImageButton MusicButton = (ImageButton) findViewById(R.id.MusicButton);
+        if(isMusicOn){
+            MusicButton.setImageResource(R.drawable.music_on);
+            //TODO Start Service
+        }else{
+            MusicButton.setImageResource(R.drawable.music_off);
+        }
+    }
+    //Flips the music on/off
+    private void flipMusic(){
+        SharedPreferences prefs = getSharedPreferences(MainActivity.GLOBAL_PREFS, MODE_PRIVATE);
+        boolean isMusicOn =  prefs.getBoolean(IS_MUSIC_ON,true);
+        SharedPreferences.Editor editor = getSharedPreferences(GLOBAL_PREFS, MODE_PRIVATE).edit();
+        editor.putBoolean(IS_MUSIC_ON,!isMusicOn);
+        editor.apply();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -150,6 +168,8 @@ public class MainActivity extends AppCompatActivity {
         } else {
             continueButton.setVisibility(View.VISIBLE);
         }
+
+        prepareMusic();
 
         Intent intent = this.getIntent();
         /* Obtain String from Intent  */
@@ -293,6 +313,15 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 Intent intent = new Intent(MainActivity.this, HelpActivity.class);
                 startActivity(intent);
+            }
+        });
+
+        ImageButton musicButton = (ImageButton) findViewById(R.id.MusicButton);
+        musicButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                flipMusic();
+                prepareMusic();
             }
         });
 
