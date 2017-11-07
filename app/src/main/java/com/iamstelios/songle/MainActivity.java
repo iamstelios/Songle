@@ -12,6 +12,7 @@ import android.widget.ImageButton;
 import android.widget.Toast;
 
 import java.util.HashSet;
+import java.util.Locale;
 
 import static java.lang.Math.round;
 
@@ -33,9 +34,10 @@ public class MainActivity extends AppCompatActivity {
     public static final String TOTAL_DIST_KEY = "total_distance_key";
     public static final String HIGHSCORE_KEY = "highscore_key";
     public static final String TOTAL_SONGS_FOUND_KEY = "SONGS_FOUND_KEY";
-    public static final String CURRENT_SONGS_FOUND = "current_songs_found";
-    public static final String CURRENT_SONGS_SKIPPED = "current_songs_skipped";
-    public static final String IS_MUSIC_ON = "is_music_on";
+    public static final String TOTAL_GUESS_ATTEMPTS = "total_guess_attempts";
+    public static final String CURRENT_SONGS_FOUND_KEY = "current_songs_found";
+    public static final String CURRENT_SONGS_SKIPPED_KEY = "current_songs_skipped";
+    public static final String IS_MUSIC_ON_KEY = "is_music_on";
 
     public static int STARTING_POINTS = 500;
 
@@ -101,8 +103,8 @@ public class MainActivity extends AppCompatActivity {
                         editor.putStringSet(LYRICS_FOUND_KEY, new HashSet<String>());
                         editor.putFloat(SONG_DIST_KEY, 0);
                         editor.putInt(POINTS_KEY, STARTING_POINTS);
-                        editor.putInt(CURRENT_SONGS_FOUND, 0);
-                        editor.putInt(CURRENT_SONGS_SKIPPED, 0);
+                        editor.putInt(CURRENT_SONGS_FOUND_KEY, 0);
+                        editor.putInt(CURRENT_SONGS_SKIPPED_KEY, 0);
 
                         editor.apply();
                         Toast.makeText(MainActivity.this, R.string.new_game_toast, Toast.LENGTH_SHORT).show();
@@ -130,24 +132,26 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences prefs = getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE);
         return prefs.contains(DIFFICULTY_KEY);
     }
+
     //Prepares the Music
-    private void prepareMusic(){
+    private void prepareMusic() {
         SharedPreferences prefs = getSharedPreferences(MainActivity.GLOBAL_PREFS, MODE_PRIVATE);
-        boolean isMusicOn =  prefs.getBoolean(IS_MUSIC_ON,true);
+        boolean isMusicOn = prefs.getBoolean(IS_MUSIC_ON_KEY, true);
         ImageButton MusicButton = (ImageButton) findViewById(R.id.MusicButton);
-        if(isMusicOn){
+        if (isMusicOn) {
             MusicButton.setImageResource(R.drawable.music_on);
             //TODO Start Service
-        }else{
+        } else {
             MusicButton.setImageResource(R.drawable.music_off);
         }
     }
+
     //Flips the music on/off
-    private void flipMusic(){
+    private void flipMusic() {
         SharedPreferences prefs = getSharedPreferences(MainActivity.GLOBAL_PREFS, MODE_PRIVATE);
-        boolean isMusicOn =  prefs.getBoolean(IS_MUSIC_ON,true);
+        boolean isMusicOn = prefs.getBoolean(IS_MUSIC_ON_KEY, true);
         SharedPreferences.Editor editor = getSharedPreferences(GLOBAL_PREFS, MODE_PRIVATE).edit();
-        editor.putBoolean(IS_MUSIC_ON,!isMusicOn);
+        editor.putBoolean(IS_MUSIC_ON_KEY, !isMusicOn);
         editor.apply();
     }
 
@@ -293,14 +297,16 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 SharedPreferences prefs = getSharedPreferences(MainActivity.GLOBAL_PREFS, MODE_PRIVATE);
-                int highscore = prefs.getInt(MainActivity.HIGHSCORE_KEY, 0);
-                int totalSongsFound = prefs.getInt(MainActivity.TOTAL_SONGS_FOUND_KEY, 0);
-                float totalDistance = prefs.getFloat(MainActivity.TOTAL_DIST_KEY, 0);
+                int highscore = prefs.getInt(HIGHSCORE_KEY, 0);
+                int totalSongsFound = prefs.getInt(TOTAL_SONGS_FOUND_KEY, 0);
+                float totalDistance = prefs.getFloat(TOTAL_DIST_KEY, 0);
+                int totalGuessAttempts = prefs.getInt(TOTAL_GUESS_ATTEMPTS, 1);
                 AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
                 builder.setTitle("Your stats");
-                builder.setMessage("Total distance travelled: " +
-                        round(totalDistance) + "m \n\nHighest score: "
-                        + highscore + "\n\nTotal number of songs found: " + totalSongsFound);
+                builder.setMessage("Total distance travelled: " + round(totalDistance) +
+                        "m \n\nHighest score: " + highscore + "\n\nTotal number of songs found: " +
+                        totalSongsFound + "\n\nGuessing Accuracy: "+
+                        round(((double)totalSongsFound/totalGuessAttempts)*100)+ "%");
                 AlertDialog dialog = builder.create();
                 dialog.show();
             }

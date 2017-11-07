@@ -164,7 +164,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private void addSongsFound() {
         SharedPreferences.Editor editor = getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE).edit();
         songsFound++;
-        editor.putInt(MainActivity.CURRENT_SONGS_FOUND, songsFound);
+        editor.putInt(MainActivity.CURRENT_SONGS_FOUND_KEY, songsFound);
         editor.apply();
         updateSongsFoundText();
     }
@@ -178,7 +178,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private void addSongsSkipped() {
         SharedPreferences.Editor editor = getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE).edit();
         songsSkipped++;
-        editor.putInt(MainActivity.CURRENT_SONGS_SKIPPED, songsSkipped);
+        editor.putInt(MainActivity.CURRENT_SONGS_SKIPPED_KEY, songsSkipped);
         editor.apply();
         updateSongsSkippedText();
     }
@@ -299,8 +299,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             editor.remove(MainActivity.POINTS_KEY);
             editor.remove(MainActivity.SONG_KEY);
             editor.remove(MainActivity.SONG_DIST_KEY);
-            editor.remove(MainActivity.CURRENT_SONGS_FOUND);
-            editor.remove(MainActivity.CURRENT_SONGS_SKIPPED);
+            editor.remove(MainActivity.CURRENT_SONGS_FOUND_KEY);
+            editor.remove(MainActivity.CURRENT_SONGS_SKIPPED_KEY);
             //Commit changes because we want to be sure the continue button
             // will be not be present in main activity
             editor.commit();
@@ -428,9 +428,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         lyricsFound = prefs.getStringSet(MainActivity.LYRICS_FOUND_KEY, new HashSet<String>());
         points = prefs.getInt(MainActivity.POINTS_KEY, MainActivity.STARTING_POINTS);
         updateScore(points);
-        songsFound = prefs.getInt(MainActivity.CURRENT_SONGS_FOUND, 0);
+        songsFound = prefs.getInt(MainActivity.CURRENT_SONGS_FOUND_KEY, 0);
         updateSongsFoundText();
-        songsSkipped = prefs.getInt(MainActivity.CURRENT_SONGS_SKIPPED, 0);
+        songsSkipped = prefs.getInt(MainActivity.CURRENT_SONGS_SKIPPED_KEY, 0);
         updateSongsSkippedText();
         songDistance = prefs.getFloat(MainActivity.SONG_DIST_KEY, 0);
         updateDistanceText();
@@ -487,12 +487,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             //String that saves the guess
                             String submission = input.getText().toString();
                             Log.i(TAG, "User submitted song: " + submission);
+                            //Incrementing the guess attempts value
+                            SharedPreferences global_prefs = getSharedPreferences(MainActivity.GLOBAL_PREFS, MODE_PRIVATE);
+                            int totalGuessAttempts = global_prefs.getInt(MainActivity.TOTAL_GUESS_ATTEMPTS, 0)+1;
+                            SharedPreferences.Editor global_editor = getSharedPreferences(MainActivity.GLOBAL_PREFS, MODE_PRIVATE).edit();
+                            global_editor.putInt(MainActivity.TOTAL_GUESS_ATTEMPTS,totalGuessAttempts);
+                            global_editor.apply();
                             //TODO: Add the string that ignores the parenthesis substring
                             if (submission.equalsIgnoreCase(song.title)) {
                                 //Correct guess
                                 progressSong(song, false);
                             } else {
                                 //Wrong guess
+                                //Subtracting the points
                                 points -= submittingPointsToDeduct.get(difficulty);
                                 updateScore(points);
                                 Toast.makeText(MapsActivity.this, "Wrong Song :( Try Again.", Toast.LENGTH_SHORT).show();
