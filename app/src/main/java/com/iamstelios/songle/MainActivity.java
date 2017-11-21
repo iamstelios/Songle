@@ -2,7 +2,9 @@ package com.iamstelios.songle;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -12,7 +14,10 @@ import android.widget.ImageButton;
 import android.widget.Toast;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
+import java.util.Random;
+import java.util.Set;
 
 import static java.lang.Math.round;
 
@@ -33,16 +38,22 @@ public class MainActivity extends AppCompatActivity {
     public static final String SONG_DIST_KEY = "song_distance_key";
     public static final String TOTAL_DIST_KEY = "total_distance_key";
     public static final String HIGHSCORE_KEY = "highscore_key";
-    public static final String TOTAL_SONGS_FOUND_KEY = "SONGS_FOUND_KEY";
+    public static final String TOTAL_SONGS_FOUND_KEY = "total_songs_found_key";
     public static final String TOTAL_GUESS_ATTEMPTS = "total_guess_attempts";
     public static final String CURRENT_SONGS_FOUND_KEY = "current_songs_found";
     public static final String CURRENT_SONGS_SKIPPED_KEY = "current_songs_skipped";
     public static final String IS_MUSIC_ON_KEY = "is_music_on";
+    public static final String SONGS_USED_KEY = "songs_used_key";
+    private final String SONGS_XML_URL = "http://www.inf.ed.ac.uk/teaching/courses/selp/data/songs/songs.xml";
 
     public static int STARTING_POINTS = 500;
 
     //Used to determine the difficulty when starting a new game
     private String difficulty;
+
+    private List<Song> songList;
+
+    private NetworkReceiver receiver;
 
     private static MainActivity instance;
 
@@ -84,6 +95,36 @@ public class MainActivity extends AppCompatActivity {
         dialog.show();
     }
 
+    public void setSongList(List<Song> songList) {
+        this.songList = songList;
+    }
+
+    public List<Song> getSongList() {
+        return songList;
+    }
+
+    //Chooses a new song number from the songs not used yet
+    public String getNewSongNum(int size) {
+
+        SharedPreferences prefs = getSharedPreferences(USER_PREFS, MODE_PRIVATE);
+        Set<String> songsUsed = prefs.getStringSet(SONGS_USED_KEY, new HashSet<String>());
+
+        String songNum;
+        int min = 1;
+        int max = size + 1;
+        do {
+            //No need to check for completion as the program won't call this method if all songs used
+            int random = new Random().nextInt((max - min) + 1) + min;
+            songNum = String.format(Locale.ENGLISH, "%02d", random);
+        } while (songsUsed.contains(songNum));
+        songsUsed.add(songNum);
+        //Update the songs used set with the new song
+        SharedPreferences.Editor editor = getSharedPreferences(USER_PREFS, MODE_PRIVATE).edit();
+        editor.putStringSet(SONGS_USED_KEY, songsUsed);
+        return songNum;
+    }
+
+
     //Dialog for choosing difficulty
     private void chooseDifficulty() {
         //Using an Alert Dialog to choose difficulty
@@ -98,7 +139,7 @@ public class MainActivity extends AppCompatActivity {
                         SharedPreferences.Editor editor = getSharedPreferences(USER_PREFS, MODE_PRIVATE).edit();
                         editor.putString(DIFFICULTY_KEY, difficulty);
                         //Starting for the first song if it's a new game
-                        editor.putString(SONG_KEY, getString(R.string.first_song_number));
+                        editor.putString(SONG_KEY, getNewSongNum(songList.size()));
                         //Set the lyrics found to empty
                         editor.putStringSet(LYRICS_FOUND_KEY, new HashSet<String>());
                         editor.putFloat(SONG_DIST_KEY, 0);
@@ -165,6 +206,12 @@ public class MainActivity extends AppCompatActivity {
 
         setInstance(this);
 
+        // Register BroadcastReceiver to track connection changes.
+        IntentFilter filter = new
+                IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+        receiver = new NetworkReceiver(NetworkReceiver.MAIN_KEY);
+        this.registerReceiver(receiver, filter);
+
         //Hide continue button if no progress
         View continueButton = findViewById(R.id.ContinueButton);
         if (!hasProgress()) {
@@ -215,6 +262,11 @@ public class MainActivity extends AppCompatActivity {
         newGameButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if (songList == null) {
+                    Toast.makeText(MainActivity.this, R.string.internet_connection_toast, Toast.LENGTH_LONG).show();
+                    Log.e(TAG, "User tried to start a new game without internet connection");
+                    return;
+                }
                 if (hasProgress()) {
                     AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
                     builder.setMessage(R.string.dialog_new_game_message)
@@ -244,6 +296,11 @@ public class MainActivity extends AppCompatActivity {
         continueButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if (songList == null) {
+                    Toast.makeText(MainActivity.this, R.string.internet_connection_toast, Toast.LENGTH_LONG).show();
+                    Log.e(TAG, "User tried to continue a game without an internet connection to download the songList");
+                    return;
+                }
                 //Check if the user already has progress by checking if he has a difficulty set
                 if (hasProgress()) {
                     Toast.makeText(MainActivity.this, R.string.continue_toast, Toast.LENGTH_SHORT).show();
@@ -305,8 +362,8 @@ public class MainActivity extends AppCompatActivity {
                 builder.setTitle("Your stats");
                 builder.setMessage("Total distance travelled: " + round(totalDistance) +
                         "m \n\nHighest score: " + highscore + "\n\nTotal number of songs found: " +
-                        totalSongsFound + "\n\nGuessing Accuracy: "+
-                        round(((double)totalSongsFound/totalGuessAttempts)*100)+ "%");
+                        totalSongsFound + "\n\nGuessing Accuracy: " +
+                        round(((double) totalSongsFound / totalGuessAttempts) * 100) + "%");
                 AlertDialog dialog = builder.create();
                 dialog.show();
             }
@@ -351,6 +408,11 @@ public class MainActivity extends AppCompatActivity {
         } else {
             continueButton.setVisibility(View.VISIBLE);
         }
+    }
+
+    public void downloadSongList() {
+        //Download the song list
+        new Downloader().downloadSongs(SONGS_XML_URL);
     }
 
     /* Settings stuff TODO DELETE!

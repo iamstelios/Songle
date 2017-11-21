@@ -18,6 +18,14 @@ public class NetworkReceiver extends BroadcastReceiver {
 
     public static final String WIFI = "Wi-Fi";
     public static final String ANY = "Any";
+    public static final String MAIN_KEY = "main_key";
+    public static final String MAPS_KEY = "maps_key";
+
+    public final String connectedTo;
+
+    public NetworkReceiver(String connectedTo){
+        this.connectedTo = connectedTo;
+    }
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -34,16 +42,28 @@ public class NetworkReceiver extends BroadcastReceiver {
                 ConnectivityManager.TYPE_WIFI) {
             // WiFi is connected, so use WiFi
             Log.i(TAG, "Connected using WiFi");
-            MapsActivity.getInstance().runDownloads();
+
+            update();
 
         } else if (networkPref.equals(ANY) && networkInfo != null) {
             // Have a network connection and permission, so use data
             Log.i(TAG, "Connected using Data");
-            MapsActivity.getInstance().runDownloads();
+
+            update();
+
         } else {
             // No WiFi and no permission, or no network connection
             Toast.makeText(context, "Please check your connection, for Songle to download the songs", Toast.LENGTH_SHORT).show();
             Log.i(TAG, "No connection");
+        }
+    }
+
+    public void update(){
+        //Update according to the activity that uses the receiver
+        if(connectedTo == MAPS_KEY){
+            MapsActivity.getInstance().runDownloads();
+        }else{
+            MainActivity.getInstance().downloadSongList();
         }
     }
 }

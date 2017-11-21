@@ -111,7 +111,6 @@
 
     <string name="new_game_toast">New Game Started!</string>
     <string name="continue_toast">Game continued!</string>
-    <string name="first_song_number">01</string>
     <string name="difficulty_easy">5</string>
     <string name="score_image_description">Score: </string>
     <!--string name="dialog_submit_message">Correct: +500 points. \nWrong: -100 points.</string-->
@@ -132,5 +131,6 @@
     <!--string name="dialog_complete_message_skipped">Game Completed! \nTry to pass the game in a harder difficulty without skipping songs for extra challenge.</string-->
     <string name="dialog_complete_message_skipped">Game Completed!</string>
     <string name="dialog_complete_message">Game completed! Last guess:</string>
+    <string name="internet_connection_toast">You need an internet connection to play the game!</string>
 
 </resources>
