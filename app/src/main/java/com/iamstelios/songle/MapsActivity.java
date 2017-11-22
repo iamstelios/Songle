@@ -206,7 +206,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void updateDistanceText() {
         TextView songDistanceText = findViewById(R.id.songDistanceText);
-        songDistanceText.setText(String.valueOf(round(songDistance)) + "m");
+        songDistanceText.setText(String.format(Locale.ENGLISH,"%s m",String.valueOf(round(songDistance))));
     }
 
     private void updateDistance(Location location) {
@@ -329,6 +329,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             editor.remove(MainActivity.SONG_DIST_KEY);
             editor.remove(MainActivity.CURRENT_SONGS_FOUND_KEY);
             editor.remove(MainActivity.CURRENT_SONGS_SKIPPED_KEY);
+            editor.remove(MainActivity.SONGS_USED_KEY);
             //Commit changes because we want to be sure the continue button
             // will be not be present in main activity
             editor.commit();
@@ -655,6 +656,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        //unregister the network receiver
+        if(receiver!=null) {
+            unregisterReceiver(receiver);
+        }
+    }
+
     protected void createLocationRequest() {
         // Set the parameters for the location request
         LocationRequest mLocationRequest = new LocationRequest();
@@ -947,11 +957,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void setAllWords(ArrayList<String[]> allWords){
         this.allWords = allWords;
     }
-
-    public void setSongList(List<Song> songList){
-        this.songList = songList;
-    }
-
 
 
 

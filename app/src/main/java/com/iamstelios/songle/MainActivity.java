@@ -1,11 +1,15 @@
 package com.iamstelios.songle;
 
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -111,7 +115,7 @@ public class MainActivity extends AppCompatActivity {
 
         String songNum;
         int min = 1;
-        int max = size + 1;
+        int max = size;
         do {
             //No need to check for completion as the program won't call this method if all songs used
             int random = new Random().nextInt((max - min) + 1) + min;
@@ -121,6 +125,7 @@ public class MainActivity extends AppCompatActivity {
         //Update the songs used set with the new song
         SharedPreferences.Editor editor = getSharedPreferences(USER_PREFS, MODE_PRIVATE).edit();
         editor.putStringSet(SONGS_USED_KEY, songsUsed);
+        editor.apply();
         return songNum;
     }
 
@@ -146,7 +151,7 @@ public class MainActivity extends AppCompatActivity {
                         editor.putInt(POINTS_KEY, STARTING_POINTS);
                         editor.putInt(CURRENT_SONGS_FOUND_KEY, 0);
                         editor.putInt(CURRENT_SONGS_SKIPPED_KEY, 0);
-
+                        editor.putStringSet(SONGS_USED_KEY, new HashSet<String>());
                         editor.apply();
                         Toast.makeText(MainActivity.this, R.string.new_game_toast, Toast.LENGTH_SHORT).show();
                         Log.i(TAG, "Started a new game");
@@ -174,6 +179,34 @@ public class MainActivity extends AppCompatActivity {
         return prefs.contains(DIFFICULTY_KEY);
     }
 
+    //Used to for binding the music service
+    private boolean mIsBound = false;
+    private MusicService mServ;
+    private ServiceConnection Scon = new ServiceConnection() {
+
+        public void onServiceConnected(ComponentName name, IBinder
+                binder) {
+            mServ = ((MusicService.ServiceBinder) binder).getService();
+        }
+
+        public void onServiceDisconnected(ComponentName name) {
+            mServ = null;
+        }
+    };
+
+    void doBindService() {
+        bindService(new Intent(this, MusicService.class),
+                Scon, Context.BIND_AUTO_CREATE);
+        mIsBound = true;
+    }
+
+    void doUnbindService() {
+        if (mIsBound) {
+            unbindService(Scon);
+            mIsBound = false;
+        }
+    }
+
     //Prepares the Music
     private void prepareMusic() {
         SharedPreferences prefs = getSharedPreferences(MainActivity.GLOBAL_PREFS, MODE_PRIVATE);
@@ -181,13 +214,22 @@ public class MainActivity extends AppCompatActivity {
         ImageButton MusicButton = (ImageButton) findViewById(R.id.MusicButton);
         if (isMusicOn) {
             MusicButton.setImageResource(R.drawable.music_on);
-            //TODO Start Service
+            if(mServ!=null){
+                mServ.resumeMusic();
+            }else{
+                Intent music = new Intent();
+                music.setClass(this,MusicService.class);
+                startService(music);
+            }
         } else {
             MusicButton.setImageResource(R.drawable.music_off);
+            if(mServ!=null){
+                mServ.pauseMusic();
+            }
         }
     }
 
-    //Flips the music on/off
+    //Flips the music preference on/off
     private void flipMusic() {
         SharedPreferences prefs = getSharedPreferences(MainActivity.GLOBAL_PREFS, MODE_PRIVATE);
         boolean isMusicOn = prefs.getBoolean(IS_MUSIC_ON_KEY, true);
@@ -220,7 +262,11 @@ public class MainActivity extends AppCompatActivity {
             continueButton.setVisibility(View.VISIBLE);
         }
 
+        //Bind the music service
+        doBindService();
+
         prepareMusic();
+
 
         Intent intent = this.getIntent();
         /* Obtain String from Intent  */
@@ -408,6 +454,37 @@ public class MainActivity extends AppCompatActivity {
         } else {
             continueButton.setVisibility(View.VISIBLE);
         }
+        prepareMusic();
+    }
+
+    /*
+    @Override
+    protected void onStop() {
+        super.onStop();
+        doUnbindService();
+        mServ.onDestroy();
+    }*/
+
+    /*
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mServ.pauseMusic();
+    }*/
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        //unregister the network receiver
+        if(receiver!=null){
+            unregisterReceiver(receiver);
+        }
+        doUnbindService();
+        mServ.onDestroy();
+        //TODO REMOVE?
+        //Unbind the background music service
+        //doUnbindService();
+        //mServ.onDestroy();
     }
 
     public void downloadSongList() {

@@ -87,6 +87,11 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.iamstelios.songle.MainActivity" />
         </activity>
+
+        <service
+            android:name=".MusicService"
+            android:enabled="true"
+            android:exported="false"></service>
     </application>
 
 </manifest>
