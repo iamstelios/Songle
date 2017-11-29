@@ -8,6 +8,10 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.widget.Toast;
 
+/**
+ * MusicService is used to handle the background music of the game.
+ * <p>It extends Service so that the music keeps playing between activities.</p>
+ */
 public class MusicService extends Service {
     private final IBinder mBinder = new ServiceBinder();
     MediaPlayer mPlayer;
@@ -28,13 +32,15 @@ public class MusicService extends Service {
     @Override
     public void onCreate (){
         super.onCreate();
-
+        //Initialize the player, with the background music found  in the raw resources
         mPlayer = MediaPlayer.create(this, R.raw.background_music);
 
         if(mPlayer!= null)
         {
+            //Set the background music to loop indefinitely
             mPlayer.setLooping(true);
-            mPlayer.setVolume(100,100);
+            //TODO CHECK, was 100,100
+            mPlayer.setVolume(0.5f,0.5f);
         }
 
         mPlayer.setOnErrorListener(new OnErrorListener() {
@@ -58,6 +64,9 @@ public class MusicService extends Service {
         return START_STICKY;
     }
 
+    /**
+     * Pauses the background music
+     */
     public void pauseMusic()
     {
         if(mPlayer==null){
@@ -70,7 +79,9 @@ public class MusicService extends Service {
 
         }
     }
-
+    /**
+     * Resumes the background music
+     */
     public void resumeMusic()
     {
         if(mPlayer==null){
@@ -81,13 +92,6 @@ public class MusicService extends Service {
             mPlayer.seekTo(length);
             mPlayer.start();
         }
-    }
-
-    public void stopMusic()
-    {
-        mPlayer.stop();
-        mPlayer.release();
-        mPlayer = null;
     }
 
     @Override
@@ -105,6 +109,10 @@ public class MusicService extends Service {
         }
     }
 
+    /**
+     * Handles errors occuring with the MediaPlayer by stopping and releasing it.
+     * <p><b>Note:</b> mPlayer is assigned to <b>null</b></p>
+     */
     public boolean onErrorHandler(MediaPlayer mp, int what, int extra) {
 
         Toast.makeText(this, "music player failed", Toast.LENGTH_SHORT).show();

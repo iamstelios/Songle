@@ -1,5 +1,10 @@
 package com.iamstelios.songle;
 
+/**
+ * Class used to define the different placemarks used on the map of the game.
+ * <p>Placemarks represent a lyric of the current song</p>
+ * <p>All properties are set in the constructor and cannot be changed afterwards.</p>
+ */
 public class Placemark {
     private final String name;
     private final String description;
@@ -13,6 +18,7 @@ public class Placemark {
         this.longitude = longitude;
     }
 
+    //Getter methods for accessing the properties of a Placemark
     public String getName() {
         return name;
     }

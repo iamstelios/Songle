@@ -1,8 +1,6 @@
 package com.iamstelios.songle;
 
 import android.Manifest;
-import android.content.ActivityNotFoundException;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -11,7 +9,6 @@ import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.location.Location;
 import android.net.ConnectivityManager;
-import android.net.Uri;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
@@ -48,6 +45,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import static java.lang.Math.max;
 import static java.lang.Math.round;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback,
@@ -55,54 +53,83 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener, GoogleMap.OnMarkerClickListener {
     private static final String TAG = MapsActivity.class.getSimpleName();
-    //TODO Callibrate distance
+    /**
+     * Distance from where the player can collect a lyric
+     */
     private static final float COLLECTION_DISTANCE_MAXIMUM = 25;
 
     private GoogleMap mMap;
 
     private GoogleApiClient mGoogleApiClient;
     private final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
+
     //TODO: CHECK WHAT HAPPENS WHEN I DONT HAVE PERMISSIONS AND CHANGE ACCORDINGLY
     //private boolean mLocationPermissionGranted = false;
+    /**
+     * Last Location received from the GPS
+     */
     private Location mLastLocation;
+    /**
+     * Latitude and longitude of George Square
+     */
     private final LatLng GEORGE_SQUARE_LATLNG = new LatLng(55.944251, -3.189111);
-
+    /**
+     * List of the songs in the Songle as given by the MainActivity
+     */
     private List<Song> songList;
+    /**
+     * List of the placemarks on the map
+     */
     private List<Placemark> placemarkList;
+    /**
+     * Set of the lyrics found by the player (current song)
+     * <p>In form line:word e.g. "3:5"</p>
+     */
     private Set<String> lyricsFound;
+    /**
+     * The points accumulated by the player
+     * <p>Normally should be always positive</p>
+     */
     private int points;
+    /**
+     * Level of difficulty in form "1"
+     * Difficulty can range from 1 to 5, with 1 the hardest and 5 the easiest.
+     */
     private String difficulty;
+    /**
+     * Number of the currect song to be found
+     */
     private String songNumber;
-    private final String KML_URL = "http://www.inf.ed.ac.uk/teaching/courses/selp/data/songs/%s/map%s.kml";
+    //URLs used for retrieving the remote data
+    private final String KML_URL =
+            "http://www.inf.ed.ac.uk/teaching/courses/selp/data/songs/%s/map%s.kml";
+    private final String WORDS_URL =
+            "http://www.inf.ed.ac.uk/teaching/courses/selp/data/songs/%s/words.txt";
+    /**
+     * List of all the words (lyrics) found by the player
+     */
     private ArrayList<String[]> allWords;
-    private final String WORDS_URL = "http://www.inf.ed.ac.uk/teaching/courses/selp/data/songs/%s/words.txt";
+    /**
+     * Used for the insertion and retrieval of the words found intent extra
+     */
     public static final String WORDS_FOUND_KEY = "words_found_key";
+    /**
+     * Number of songs found in the current session
+     */
     private int songsFound;
+    /**
+     * Number of songs skipped in the current session
+     */
     private int songsSkipped;
+    /**
+     * Distance covered by the player during current song
+     */
     private float songDistance;
-    private float totalDistance;
 
-    //Used to redirect the user to the video of the song he found
-    public static void watchYoutubeVideo(Context context, String link) {
-        if (!link.contains("https://youtu.be/")) {
-            Log.e(TAG, "Youtube link not in correct problem");
-            Toast.makeText(context, "Sorry, there was a problem loading the video.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        String id = link.replace("https://youtu.be/", "");
-        Intent appIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube:" + id));
-        Intent webIntent = new Intent(Intent.ACTION_VIEW,
-                Uri.parse("http://www.youtube.com/watch?v=" + id));
-        try {
-            context.startActivity(appIntent);
-            Log.i(TAG, "User redirected to Youtube app");
-        } catch (ActivityNotFoundException ex) {
-            Log.i(TAG, "User redirected to broswer to watch video");
-            context.startActivity(webIntent);
-        }
-    }
-
-    //Used to calculate how many points to deduct when a lyric is revealed
+    /**
+     * Used to calculate how many points to deduct when a lyric is revealed,
+     * depending on the rarity.
+     */
     private static final Map<String, Integer> pointsToDeduct = new HashMap<String, Integer>() {
         {
             put("veryinteresting", 400);
@@ -113,7 +140,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     };
 
-    //Used to calculate how many points to add when a lyric is collected
+    /**
+     * Used to calculate how many points to add when a lyric is collected,
+     * depending on the rarity.
+     */
     private static final Map<String, Integer> pointsToScore = new HashMap<String, Integer>() {
         {
             put("veryinteresting", 50);
@@ -124,28 +154,70 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     };
 
-    private static final Map<String, Integer> submittingPointsToScore = new HashMap<String, Integer>() {
-        {
-            put("1", 1000);
-            put("2", 500);
-            put("3", 400);
-            put("4", 200);
-            put("5", 100);
-        }
-    };
+    /**
+     * Used to calculate how many points to add when a song is guessed correctly,
+     * depending on the difficulty.
+     */
+    private static final Map<String, Integer> submittingPointsToScore =
+            new HashMap<String, Integer>() {
+                {
+                    put("1", 1000);
+                    put("2", 500);
+                    put("3", 400);
+                    put("4", 200);
+                    put("5", 100);
+                }
+            };
 
-    private static final Map<String, Integer> submittingPointsToDeduct = new HashMap<String, Integer>() {
-        {
-            put("1", 200);
-            put("2", 100);
-            put("3", 80);
-            put("4", 50);
-            put("5", 20);
-        }
-    };
+    /**
+     * Used to calculate how many points to deduct when a song is not guessed correctly,
+     * depending on the difficulty.
+     */
+    private static final Map<String, Integer> submittingPointsToDeduct =
+            new HashMap<String, Integer>() {
+                {
+                    put("1", 200);
+                    put("2", 100);
+                    put("3", 80);
+                    put("4", 50);
+                    put("5", 20);
+                }
+            };
 
-    //Receives the lyric in the line:word form (eg.15:3) and returns the actual word
+    /**
+     * Receiver used to check the connection
+     */
+    private NetworkReceiver receiver;
+    //Used to store the current instance created on onCreate
+    private static MapsActivity instance;
+
+    //Getter for instance
+    public static MapsActivity getInstance() {
+        return instance;
+    }
+
+    //Setter for instance
+    public static void setInstance(MapsActivity instance) {
+        MapsActivity.instance = instance;
+    }
+
+    /**
+     * Setter method for allWords (used by the downloader)
+     * @param allWords Value to be assigned
+     */
+    public void setAllWords(ArrayList<String[]> allWords) {
+        this.allWords = allWords;
+    }
+
+    /**
+     * Receives the lyric and returns the actual word
+     *
+     * @param lyric Lyric in line:word form (e.g.15:3)
+     * @return Actual word (e.g. "Mama")
+     */
     private String lyricToWord(String lyric) {
+        // Split the lyric so we separate the line from the word
+        // Position 0 has the line number and position 1 has the word number
         String[] lineWord = lyric.split(":");
         try {
             int lineNum = Integer.parseInt(lineWord[0]);
@@ -154,15 +226,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             // Word position in the line is wordNum+1 because position 1 is the line Number
             return allWords.get(lineNum - 1)[wordNum + 1];
         } catch (IndexOutOfBoundsException e) {
+            //Lyric values does not match the text
             Log.e(TAG, "Unexpected lyric found!");
             return getString(R.string.unexpected_lyric);
         } catch (NullPointerException e) {
+            // Normally this case shouldn't be reached because each action that
+            // calls lyricToWord ensures allWords is populated
             Log.e(TAG, "allWords not initialized");
             return getString(R.string.lyric_text_not_loaded);
         }
     }
 
-    //Return the actual words found, given their "coordinates" and all the words
+    /**
+     * Finds the words from a list of lyrics in line:word form
+     *
+     * @param lyricsFound List of lyrics in line:word form
+     * @return List of actual words of lyrics
+     */
     private ArrayList<String> findWordsFound(Set<String> lyricsFound) {
         if (lyricsFound == null) {
             Log.e(TAG, "Lyrics found null, returning EMPTY list.");
@@ -175,40 +255,62 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return wordsFound;
     }
 
+    /**
+     * Updates the TextView that shows the number of songs found
+     */
     private void updateSongsFoundText() {
         TextView songsFoundText = findViewById(R.id.songsFoundText);
         songsFoundText.setText(String.valueOf(songsFound));
     }
 
-    //Increments the number of songs found
+    /**
+     * Increments the number of songs found
+     */
     private void addSongsFound() {
-        SharedPreferences.Editor editor = getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE).edit();
+        SharedPreferences.Editor editor =
+                getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE).edit();
         songsFound++;
         editor.putInt(MainActivity.CURRENT_SONGS_FOUND_KEY, songsFound);
         editor.apply();
+        //Need to update the text view after the changing the value
         updateSongsFoundText();
     }
 
+    /**
+     * Updates the TextView that shows the number of songs skipped
+     */
     private void updateSongsSkippedText() {
         TextView songsSkippedText = findViewById(R.id.songsSkippedText);
         songsSkippedText.setText(String.valueOf(songsSkipped));
     }
 
-    //Increments the number of songs skipped
+    /**
+     * Increments the number of songs skipped
+     */
     private void addSongsSkipped() {
-        SharedPreferences.Editor editor = getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE).edit();
+        SharedPreferences.Editor editor =
+                getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE).edit();
         songsSkipped++;
         editor.putInt(MainActivity.CURRENT_SONGS_SKIPPED_KEY, songsSkipped);
         editor.apply();
+        //Need to update the text view after the changing the value
         updateSongsSkippedText();
     }
 
-
+    /**
+     * Updates the TextView that shows the distance travelled
+     */
     private void updateDistanceText() {
         TextView songDistanceText = findViewById(R.id.songDistanceText);
-        songDistanceText.setText(String.format(Locale.ENGLISH,"%s m",String.valueOf(round(songDistance))));
+        songDistanceText.setText(
+                String.format(Locale.ENGLISH, "%s m", String.valueOf(round(songDistance))));
     }
 
+    /**
+     * Update the distance travelled
+     *
+     * @param location Current location
+     */
     private void updateDistance(Location location) {
         if (mLastLocation == null) {
             return;
@@ -218,21 +320,31 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         if (distanceToLast < 10.00) {
             Log.i(TAG, "updateDistance: Distance too close, so not used.");
         } else {
-            SharedPreferences.Editor editor = getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE).edit();
+            SharedPreferences.Editor editor =
+                    getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE).edit();
             songDistance += distanceToLast;
             editor.putFloat(MainActivity.SONG_DIST_KEY, songDistance);
             editor.apply();
+            //Retrieve the total distance covered
+            SharedPreferences prefs = getSharedPreferences(MainActivity.GLOBAL_PREFS, MODE_PRIVATE);
+            float totalDistance = prefs.getFloat(MainActivity.TOTAL_DIST_KEY, 0);
             //Open editor for global prefs to change total distance traveled
             editor = getSharedPreferences(MainActivity.GLOBAL_PREFS, MODE_PRIVATE).edit();
             totalDistance += distanceToLast;
             editor.putFloat(MainActivity.TOTAL_DIST_KEY, totalDistance);
             editor.apply();
+            //Update the Text that show the distance
             updateDistanceText();
             Log.i(TAG, "Distances have been updated");
         }
     }
 
-    //Return the song given the song's number
+    /**
+     * Return the Song instance given the song's number
+     *
+     * @param songNumber Number of song
+     * @return Song instance
+     */
     private Song getSong(String songNumber) {
         try {
             for (Song song : songList) {
@@ -244,53 +356,81 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return null;
     }
 
-    //Update the screen showing the score and save the score in the preferences
+    /**
+     * Change the score value and update relevant properties
+     *
+     * @param points Updated score
+     */
     private void updateScore(int points) {
+        //Update the score text
         TextView scoreText = findViewById(R.id.scoreText);
         scoreText.setText(String.valueOf(points));
-        SharedPreferences.Editor editor = getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE).edit();
+        //Save the score
+        SharedPreferences.Editor editor =
+                getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE).edit();
         editor.putInt(MainActivity.POINTS_KEY, points);
         editor.apply();
         //Check if highscore
         SharedPreferences prefs = getSharedPreferences(MainActivity.GLOBAL_PREFS, MODE_PRIVATE);
         int highscore = prefs.getInt(MainActivity.HIGHSCORE_KEY, MainActivity.STARTING_POINTS);
-        SharedPreferences.Editor global_editor = getSharedPreferences(MainActivity.GLOBAL_PREFS, MODE_PRIVATE).edit();
         if (highscore < points) {
+            //Update highscore
             Log.i(TAG, "New Highscore:" + points);
+            SharedPreferences.Editor global_editor =
+                    getSharedPreferences(MainActivity.GLOBAL_PREFS, MODE_PRIVATE).edit();
             global_editor.putInt(MainActivity.HIGHSCORE_KEY, points);
+            global_editor.apply();
         }
-        global_editor.apply();
     }
 
-    //Add a lyric and update the lyrics found in the preferences
+    /**
+     * Add a lyric to the lyrics found update the preferences
+     *
+     * @param lyric Lyric found
+     */
     private void addToLyricsFound(String lyric) {
         lyricsFound.add(lyric);
-        SharedPreferences.Editor editor = getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE).edit();
+        SharedPreferences.Editor editor =
+                getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE).edit();
         editor.putStringSet(MainActivity.LYRICS_FOUND_KEY, lyricsFound);
         editor.apply();
     }
 
-    //Calculate bonus points from distance
+    /**
+     * Calculate bonus points from distance travelled in current song
+     *
+     * @param distance Distance travelled
+     * @return Bonus points
+     */
     private int bonusPoints(float distance) {
+        //The easier the game, the less bonus points earned
         return round(distance / Integer.parseInt(difficulty));
     }
 
-    //Checks if the game is completed by going through all the songs
-    private boolean isComplete(int songsCount){
+    /**
+     * Checks if the game is completed (gone through all the songs)
+     *
+     * @param songsCount Number of songs gone through so far
+     * @return true if game completed, false otherwise
+     */
+    private boolean isComplete(int songsCount) {
         SharedPreferences prefs = getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE);
-        Set<String> songsUsed = prefs.getStringSet(MainActivity.SONGS_USED_KEY, new HashSet<String>());
+        Set<String> songsUsed =
+                prefs.getStringSet(MainActivity.SONGS_USED_KEY, new HashSet<String>());
         return songsUsed.size() >= songsCount;
     }
 
-    //Takes as a parameter the current song and progresses the game to the next song
+    /**
+     * Progresses the game to the next song
+     *
+     * @param song    Current song
+     * @param skipped Was the song skipped? (T/F)
+     */
     private void progressSong(final Song song, boolean skipped) {
-        //int currentSongNum = Integer.parseInt(song.getNumber());
         //TODO: Make a test about this case
         SharedPreferences.Editor editor = getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE).edit();
-
+        //Changing the score
         if (skipped) {
-            //Toast.makeText(this, "You've skipped the song :( You've walked " +
-            //        songDistance + " meters failing to guess the song.", Toast.LENGTH_LONG).show();
             Log.i(TAG, "User skipped song");
             //Remove the points to the player score
             points -= submittingPointsToScore.get(difficulty);
@@ -298,8 +438,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             //Update the number of songs skipped
             addSongsSkipped();
         } else {
-            //Toast.makeText(this, "Congrats! You've progressed to the next song! You've walked " +
-            //        songDistance + " meters trying to guess the song.", Toast.LENGTH_LONG).show();
             Log.i(TAG, "User guessed right");
             //Add the points to the player score
             points += submittingPointsToScore.get(difficulty) + bonusPoints(songDistance);
@@ -307,21 +445,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             //Update the number of songs found
             addSongsFound();
 
-            //Increase Total Songs found statistic by 1
+            //Increment Total Songs found statistic
             SharedPreferences prefs = getSharedPreferences(MainActivity.GLOBAL_PREFS, MODE_PRIVATE);
             int totalSongsFound = prefs.getInt(MainActivity.TOTAL_SONGS_FOUND_KEY, 0) + 1;
             SharedPreferences.Editor global_editor = getSharedPreferences(MainActivity.GLOBAL_PREFS, MODE_PRIVATE).edit();
             global_editor.putInt(MainActivity.TOTAL_SONGS_FOUND_KEY, totalSongsFound);
             global_editor.apply();
         }
-        //TODO CHANGE for RANDOM
         //Check if all the songs have been guessed
-        //TODO add a function for completition condition boolean
-        //if (currentSongNum >= songList.size()) {
-        if(isComplete(songList.size())){
+        if (isComplete(songList.size())) {
 
             Log.i(TAG, "User completed the game!");
-
+            //Remove all the values from the current session in the preferences
             editor.remove(MainActivity.LYRICS_FOUND_KEY);
             editor.remove(MainActivity.DIFFICULTY_KEY);
             editor.remove(MainActivity.POINTS_KEY);
@@ -336,6 +471,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             //Clear map from placemarks
             mMap.clear();
             Intent intent = new Intent(MapsActivity.this, MainActivity.class);
+            //Put the extras to fill the game finishing dialog in the MainActivity
             intent.putExtra("artist", song.getArtist());
             intent.putExtra("title", song.getTitle());
             intent.putExtra("link", song.getLink());
@@ -344,19 +480,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             intent.putExtra("songsSkipped", songsSkipped);
             intent.putExtra("skipped", skipped);
             startActivity(intent);
-            //TODO CHECK IF RETURN NEEDED
             return;
         }
-
+        //Dialog shown when progressing song
         AlertDialog.Builder builder = new AlertDialog.Builder(MapsActivity.this);
         // Message different when user skipping song
         // (doesn't get to see the name of the song and  the video)
-        builder.setMessage(skipped ? "You've skipped the song. \nYou've walked " +
-                round(songDistance) + "m failing to guess the song." :
-                "You've progressed to the next song! \nYou've walked " +
-                        round(songDistance) + "m earning you " + bonusPoints(songDistance) +
-                        " bonus points trying to guess: " + song.getArtist() + " - " + song.getTitle() + ".")
-                .setTitle(skipped ? "Skipped song :(" : "Congrats!");
+        String skippedMessage = String.format(Locale.ENGLISH,
+                getString(R.string.dialog_skipped_msg), round(songDistance));
+        String correctMessage = String.format(Locale.ENGLISH,
+                getString(R.string.dialog_correct_msg),
+                round(songDistance), bonusPoints(songDistance), song.getArtist(), song.getTitle());
+        builder.setMessage(skipped ? skippedMessage : correctMessage)
+                .setTitle(skipped ? getString(R.string.dialog_title_skipped) :
+                        getString(R.string.dialog_title_correct));
+
         builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
                 // User clicked OK button
@@ -364,19 +502,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
         if (!skipped) {
-            builder.setNegativeButton("Listen on Youtube", new DialogInterface.OnClickListener() {
+            builder.setNegativeButton(R.string.listen_youtube, new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int id) {
-                    // User watch to watch video youtube
-                    watchYoutubeVideo(getInstance(), song.getLink());
+                    // User chooses to watch video on youtube
+                    Song.watchYoutubeVideo(getInstance(), song.getLink());
                 }
             });
         }
         AlertDialog dialog = builder.create();
         dialog.show();
 
-        //TODO CHANGE TO RANDOM
-        //Change the song number
-        //songNumber = String.format(Locale.ENGLISH, "%02d", currentSongNum + 1);
+        //Change the song number (chosen randomly from the songs not used yet)
         songNumber = MainActivity.getInstance().getNewSongNum(songList.size());
         editor.putString(MainActivity.SONG_KEY, songNumber);
         //Reset the lyrics found
@@ -394,7 +530,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
-    //Return a placemark of the matching position otherwise null
+    /**
+     * Find a Placemark from latitude and longitude
+     *
+     * @param position Position of placemark to be found
+     * @return Placemark of the matching position (if no match then null)
+     */
     private Placemark placemarkFromLatLng(LatLng position) {
         for (Placemark pl : placemarkList) {
             if (pl.getLatitude() == position.latitude && pl.getLongitude() == position.longitude) {
@@ -405,31 +546,65 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return null;
     }
 
-
+    /**
+     * Downloads the placemarks and lyrics resources
+     */
     public void runDownloads() {
         Log.i(TAG, "Attempting to download resources");
 
-        //TODO CHECK IF song list download NEEDED
-
-
         //Update the Placemark map
-        Downloader updater = new Downloader();
-        updater.downloadPlacemarks(String.format(KML_URL, songNumber, difficulty));
+        Downloader downloader = new Downloader();
+        downloader.downloadPlacemarks(String.format(KML_URL, songNumber, difficulty));
         Log.i(TAG, "Map to be updated with new Song");
         //Download the text for the song
-        updater.downloadLyrics(String.format(WORDS_URL, songNumber));
+        downloader.downloadLyrics(String.format(WORDS_URL, songNumber));
     }
 
-    private NetworkReceiver receiver;
-    //Have the Maps Activity instance so that the Network Receiver can access it
-    private static MapsActivity instance;
-
-    public static MapsActivity getInstance() {
-        return instance;
+    /**
+     * Calculates the Levenshtein distance between 2 strings
+     * <p>(Used to compare similarity of 2 Strings)</p>
+     *
+     * @param a First String
+     * @param b Second String
+     * @return Levenshtein distance
+     */
+    public static int distance(String a, String b) {
+        a = a.toLowerCase();
+        b = b.toLowerCase();
+        int[] costs = new int[b.length() + 1];
+        for (int j = 0; j < costs.length; j++)
+            costs[j] = j;
+        for (int i = 1; i <= a.length(); i++) {
+            // j == 0; nw = lev(i - 1, j)
+            costs[0] = i;
+            int nw = i - 1;
+            for (int j = 1; j <= b.length(); j++) {
+                int cj = Math.min(1 + Math.min(costs[j], costs[j - 1]), a.charAt(i - 1) == b.charAt(j - 1) ? nw : nw + 1);
+                nw = costs[j];
+                costs[j] = cj;
+            }
+        }
+        return costs[b.length()];
     }
 
-    public static void setInstance(MapsActivity instance) {
-        MapsActivity.instance = instance;
+    /**
+     * Checks if 2 Strings are roughly equals
+     *
+     * @param a First String
+     * @param b Second String
+     * @return True if similarity above threshold
+     */
+    public static boolean roughlyEquals(String a, String b) {
+        // This function was made to allow very similar submissions to be accepted.
+        // Minor grammatical mistakes can now pass.
+        float threshold = 0.9f;
+        //Comparison is case insensitive
+        a = a.toLowerCase(Locale.ENGLISH);
+        b = b.toLowerCase(Locale.ENGLISH);
+        // The two string have to be 90% similar to be accepted
+        int sizeLongest = max(a.length(), b.length());
+        float percentage = (sizeLongest - distance(a, b)) / (float) sizeLongest;
+        return percentage >= threshold;
     }
 
     @Override
@@ -456,8 +631,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         //Retrieve the user preferences and stats
         SharedPreferences prefs = getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE);
-        difficulty = prefs.getString(MainActivity.DIFFICULTY_KEY, getString(R.string.difficulty_easy));
-        songNumber = prefs.getString(MainActivity.SONG_KEY, MainActivity.getInstance().getNewSongNum(songList.size()));
+        difficulty =
+                prefs.getString(MainActivity.DIFFICULTY_KEY, getString(R.string.difficulty_easy));
+        songNumber =
+                prefs.getString(MainActivity.SONG_KEY,
+                        MainActivity.getInstance().getNewSongNum(songList.size()));
         lyricsFound = prefs.getStringSet(MainActivity.LYRICS_FOUND_KEY, new HashSet<String>());
         points = prefs.getInt(MainActivity.POINTS_KEY, MainActivity.STARTING_POINTS);
         updateScore(points);
@@ -467,24 +645,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         updateSongsSkippedText();
         songDistance = prefs.getFloat(MainActivity.SONG_DIST_KEY, 0);
         updateDistanceText();
-        prefs = getSharedPreferences(MainActivity.GLOBAL_PREFS, MODE_PRIVATE);
-        totalDistance = prefs.getFloat(MainActivity.TOTAL_DIST_KEY, 0);
 
-
-
-        //String difficulty = getIntent().getExtras().getString(MainActivity.DIFFICULTY_KEY);
         Log.i(TAG, "Song Number: " + songNumber + " Difficulty: " + difficulty);
-        //Toast.makeText(this, "Difficulty: " +
-        //        getResources().getStringArray(R.array.difficulties)[Integer.parseInt(difficulty)-1],
-        //        Toast.LENGTH_SHORT).show();
-
-        //TODO REMOVE
-        //Download the Placemark map
-        //new DownloadPlacemarksTask().execute(String.format(KML_URL, songNumber, difficulty));
-        //Download the text of the song
-        //new DownloadLyricsTask().execute(String.format(WORDS_URL, songNumber));
-        //Download the song list
-        //new DownloadSongsTask().execute(SONGS_XML_URL);
 
         setInstance(this);
         // Register BroadcastReceiver to track connection changes.
@@ -493,12 +655,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         receiver = new NetworkReceiver(NetworkReceiver.MAPS_KEY);
         this.registerReceiver(receiver, filter);
 
+        //Submit button listener
         FloatingActionButton submitButton = (FloatingActionButton) findViewById(R.id.submitButton);
         submitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 final Song song = getSong(songNumber);
                 if (song == null) {
+                    //Songs haven't been loaded
                     Toast.makeText(MapsActivity.this,
                             R.string.songs_not_loaded_error,
                             Toast.LENGTH_SHORT).show();
@@ -506,7 +670,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     //Show a dialog that asks the user if user wants to submit the song
                     final AlertDialog.Builder builder = new AlertDialog.Builder(MapsActivity.this);
                     //Set the message and title of the dialog
-                    builder.setMessage(String.format(Locale.ENGLISH, "Enter the title of the song. \nCorrect: +%d points. \nWrong: -%d points.", submittingPointsToScore.get(difficulty), submittingPointsToDeduct.get(difficulty)))
+                    builder.setMessage(String.format(Locale.ENGLISH,
+                            getString(R.string.dialog_submit),
+                            submittingPointsToScore.get(difficulty),
+                            submittingPointsToDeduct.get(difficulty)))
                             .setTitle(R.string.dialog_submit_title);
                     // Set up the input
                     final EditText input = new EditText(MapsActivity.this);
@@ -522,32 +689,40 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             String submission = input.getText().toString();
                             Log.i(TAG, "User submitted song: " + submission);
                             //Incrementing the guess attempts value
-                            SharedPreferences global_prefs = getSharedPreferences(MainActivity.GLOBAL_PREFS, MODE_PRIVATE);
-                            int totalGuessAttempts = global_prefs.getInt(MainActivity.TOTAL_GUESS_ATTEMPTS, 0)+1;
-                            SharedPreferences.Editor global_editor = getSharedPreferences(MainActivity.GLOBAL_PREFS, MODE_PRIVATE).edit();
-                            global_editor.putInt(MainActivity.TOTAL_GUESS_ATTEMPTS,totalGuessAttempts);
+                            SharedPreferences global_prefs =
+                                    getSharedPreferences(MainActivity.GLOBAL_PREFS, MODE_PRIVATE);
+                            int totalGuessAttempts =
+                                    global_prefs.getInt(MainActivity.TOTAL_GUESS_ATTEMPTS, 0) + 1;
+                            SharedPreferences.Editor global_editor =
+                                    getSharedPreferences(MainActivity.GLOBAL_PREFS, MODE_PRIVATE).edit();
+                            global_editor.putInt(MainActivity.TOTAL_GUESS_ATTEMPTS, totalGuessAttempts);
                             global_editor.apply();
-                            //TODO: Add the string that ignores the parenthesis substring
-                            if (submission.equalsIgnoreCase(song.getTitle())) {
+                            // Everything in a song title that's after a parenthesis can be ignored
+                            // This is to simplify titles that might have longer versions
+                            String titleSimplified = song.getTitle().replaceAll("[\\[{(].*", "");
+                            if (roughlyEquals(submission, titleSimplified) ||
+                                    roughlyEquals(submission, song.getTitle())) {
                                 //Correct guess
                                 progressSong(song, false);
                             } else {
                                 //Wrong guess
                                 //Subtracting the points
-                                int toDeduct  = submittingPointsToDeduct.get(difficulty);
+                                int toDeduct = submittingPointsToDeduct.get(difficulty);
                                 if (points - toDeduct >= 0) {
-                                    //Points fully deducted
+                                    // Points fully deducted
                                     points -= toDeduct;
                                     Log.i(TAG, pointsToDeduct + " points deducted");
                                 } else {
-                                    //Score goes to 0 because it can't be negative
-                                    //User can keep guessing (only skipping and revealing is not allowed if was to drop below zero)
+                                    // Score goes to 0 because it can't be negative
+                                    // User can keep guessing (only skipping and revealing is not
+                                    // allowed if was to drop below zero)
                                     points = 0;
                                     Log.e(TAG, "Points gone to zero.");
-                                    Toast.makeText(MapsActivity.this, "Your score dropped to zero, but you can still keep guessing the song.", Toast.LENGTH_LONG).show();
+                                    Toast.makeText(MapsActivity.this,
+                                            R.string.toast_score_zero, Toast.LENGTH_LONG).show();
                                 }
                                 updateScore(points);
-                                Toast.makeText(MapsActivity.this, "Wrong Song :( Try Again.", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(MapsActivity.this, R.string.toast_wrong_song, Toast.LENGTH_SHORT).show();
                                 Log.i(TAG, "User guessed the wrong song.");
                             }
                         }
@@ -566,7 +741,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
 
-        //Skip song floating action button
+        //Skip song floating action button listener
         FloatingActionButton skipSongButton = (FloatingActionButton) findViewById(R.id.skipSongButton);
         skipSongButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -586,12 +761,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     builder.setPositiveButton(R.string.skip, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int id) {
-                            //TODO add to all point reduction
                             if (points - submittingPointsToScore.get(difficulty) >= 0) {
                                 progressSong(song, true);
                             } else {
                                 Log.e(TAG, "Not enough points to skip song.");
-                                Toast.makeText(MapsActivity.this, "Not enough points to complete action.", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(MapsActivity.this, R.string.toast_no_points, Toast.LENGTH_SHORT).show();
                             }
 
                         }
@@ -610,7 +784,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
 
-        //Go to lyrics floating action button
+        //Go to lyrics floating action button listener
         FloatingActionButton lyrics_button = (FloatingActionButton) findViewById(R.id.lyricsButton);
         lyrics_button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -620,19 +794,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     return;
                 }
                 ArrayList<String> wordsFound = findWordsFound(lyricsFound);
+                //Go to LyricsActivity
                 Intent intent = new Intent(MapsActivity.this, LyricsActivity.class);
+                //Put the words found as extra to populate the list
                 intent.putStringArrayListExtra(WORDS_FOUND_KEY, wordsFound);
                 startActivity(intent);
             }
         });
 
+        //Zoom on current location button listener
         FloatingActionButton location_button = findViewById(R.id.locationButton);
         location_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (mLastLocation == null) {
                     Log.e(TAG, "User tried to zoom to his location with no last location");
-                    Toast.makeText(MapsActivity.this, "Please open location services before trying to zoom to your location", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MapsActivity.this, R.string.toast_location_error, Toast.LENGTH_SHORT).show();
                 } else {
                     Log.i(TAG, "Zoommed map to user's location");
                     LatLng latlng = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
@@ -645,12 +822,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     protected void onStart() {
         super.onStart();
+        //Connect the Google API Client
         mGoogleApiClient.connect();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
+        //disconnect the Google API Client
         if (mGoogleApiClient.isConnected()) {
             mGoogleApiClient.disconnect();
         }
@@ -660,11 +839,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     protected void onDestroy() {
         super.onDestroy();
         //unregister the network receiver
-        if(receiver!=null) {
+        if (receiver != null) {
             unregisterReceiver(receiver);
         }
     }
 
+    /**
+     * Creates a location request using the Google API
+     */
     protected void createLocationRequest() {
         // Set the parameters for the location request
         LocationRequest mLocationRequest = new LocationRequest();
@@ -697,10 +879,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION) ==
                 PackageManager.PERMISSION_GRANTED) {
-            //TODO: be sure I check that the location returned is not null
+            //Permissions already granted
             mLastLocation =
                     LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         } else {
+            //Request permission to access location
             ActivityCompat.requestPermissions(this,
                     new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
                     PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
@@ -714,19 +897,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         String.valueOf(current.getLatitude()) + "," +
                         String.valueOf(current.getLongitude()) + ")"
         );
+        //Update the distance travelled and change the last location to the current location
         updateDistance(current);
         mLastLocation = current;
-
-        //TODO: Do something with current location
-        //Eg. follow the player
-        /*
-        //New location of player
-        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-        //Move camera
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 17));
-        mMap.getUiSettings().setZoomControlsEnabled(false);
-        mMap.getUiSettings().setScrollGesturesEnabled(false);
-        */
     }
 
     public boolean onMarkerClick(final Marker marker) {
@@ -744,7 +917,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 if (!mMap.isMyLocationEnabled()) {
                     Log.i(TAG, "Enabling MyLocation");
                     //My location wasn't enabled so we enable it
-                    locationButtonInitializer();
+                    locationInitializer();
 
                     //Try to track location
                     try {
@@ -756,7 +929,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
                 }
                 if (mLastLocation == null) {
-                    Toast.makeText(this, "You must open location services and track your location first!", Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, R.string.toast_error_location_track, Toast.LENGTH_LONG).show();
                     Log.e(TAG, "Player must open track location before accessing markers");
                     return true;
                 }
@@ -783,14 +956,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         builder.setMessage(R.string.dialog_lyric_message)
                 .setTitle(R.string.dialog_lyric_title);
         //Notice Neutral is clicking collect, negative is revealing and positive is canceling
-        builder.setNeutralButton(getString(R.string.collect) + "(+" + pointsToScore.get(lyricClassification) + ")", new DialogInterface.OnClickListener() {
+        String collectMessage = String.format(Locale.ENGLISH, "Collect(+%d)", pointsToScore.get(lyricClassification));
+        builder.setNeutralButton(collectMessage, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
                 //User wants to collect lyric
                 if (distance <= COLLECTION_DISTANCE_MAXIMUM) {
+                    //User is close enough to collect
                     addToLyricsFound(lyricName);
                     points += pointsToScore.get(lyricClassification);
                     updateScore(points);
-                    Toast.makeText(MapsActivity.this, "Congratulations! You've collected: " + lyricToWord(lyricName), Toast.LENGTH_LONG).show();
+                    Toast.makeText(MapsActivity.this, getString(R.string.toast_collected) + lyricToWord(lyricName), Toast.LENGTH_LONG).show();
                     Log.i(TAG, "User collected lyric " + lyricName + " and scored " +
                             pointsToScore.get(lyricClassification) + " points.");
                     marker.remove();
@@ -803,24 +978,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
 
-        //String revealMessage = R.string.reveal + "(-" + pointsToDeduct.get(lyricClassification) + ")";
-        String revealMessage = getString(R.string.reveal) + "(-" + pointsToDeduct.get(lyricClassification) + ")";
+        String revealMessage = String.format(Locale.ENGLISH, "Reveal(-%d)", pointsToDeduct.get(lyricClassification));
         builder.setNegativeButton(revealMessage, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
                 //User wants to reveal lyric
                 int toDeduct = pointsToDeduct.get(lyricClassification);
-                if(points - toDeduct >=0){
+                if (points - toDeduct >= 0) {
+                    //User has enough points to reveal the lyric
                     addToLyricsFound(lyricName);
                     points -= pointsToDeduct.get(lyricClassification);
                     updateScore(points);
-                    //TODO add message with the actual lyric
-                    Toast.makeText(MapsActivity.this, "Yay! You've revealed: " + lyricToWord(lyricName), Toast.LENGTH_LONG).show();
+                    Toast.makeText(MapsActivity.this, getString(R.string.toast_revealed) + lyricToWord(lyricName), Toast.LENGTH_LONG).show();
                     Log.i(TAG, "User revealed lyric " + lyricName + " and deducted " +
                             pointsToDeduct.get(lyricClassification) + " points.");
                     marker.remove();
-                }else{
-                    Log.e(TAG, "Not enough points to skip song.");
-                    Toast.makeText(MapsActivity.this, "Not enough points to complete action.", Toast.LENGTH_SHORT).show();
+                } else {
+                    Log.e(TAG, "Not enough points to reveal lyric.");
+                    Toast.makeText(MapsActivity.this, R.string.toast_no_points, Toast.LENGTH_SHORT).show();
                 }
 
             }
@@ -837,7 +1011,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         AlertDialog dialog = builder.create();
         dialog.show();
 
-        //TODO: CHECK difference of return true and false
         return true;
     }
 
@@ -855,7 +1028,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         Toast.makeText(this, "Connection Failed", Toast.LENGTH_SHORT).show();
         Log.e(TAG, " >>>> onConnectionFailed");
     }
-
 
     /**
      * Manipulates the map once available.
@@ -884,26 +1056,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             Log.e(TAG, "Can't find style. Error: ", e);
         }
 
-        //TODO: REMOVE the comments
-        // Add a marker in Sydney and move the camera
-        //LatLng sydney = new LatLng(-34, 151);
-        //mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        //mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
-
-        //Map to load in George Square by default
+        //Map to zoom in George Square by default
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(GEORGE_SQUARE_LATLNG, 17));
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION) ==
                 PackageManager.PERMISSION_GRANTED) {
-            locationButtonInitializer();
+            locationInitializer();
         }
         mMap.setOnMarkerClickListener(this);
-
-
     }
 
-
-    private void locationButtonInitializer() {
+    /**
+     * Visualise current position using Google API
+     */
+    private void locationInitializer() {
         try {
             // Visualise current position with a small blue circle
             mMap.setMyLocationEnabled(true);
@@ -911,23 +1077,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             Log.e(TAG, se.getMessage());
             Log.e(TAG, "Security exception thrown [onMapReady]");
         }
-        //TODO delete or enable?
-        // Add ``My location'' button to the user interface
-        //mMap.getUiSettings().setMyLocationButtonEnabled(true);
+        //Hide the default location button, as I use a custom zoom to location button
         mMap.getUiSettings().setMyLocationButtonEnabled(false);
     }
 
-    /*
-    @Override
-    public void onPointerCaptureChanged(boolean hasCapture) {
-
-    }
-    */
-
-
-
-
-    public void updateMap(List<Placemark> result){
+    /**
+     * Update the Map with new Placemarks
+     * @param result List of Placemarks to be added to the map
+     */
+    public void updateMap(List<Placemark> result) {
         if (result != null) {
             placemarkList = result;
             for (Placemark pl : result) {
@@ -938,27 +1096,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 //If the lyric was already found don't place its marker on the map
                 if (lyricsFound.contains(pl.getName())) {
                     Log.i(TAG, "Lyric with name " + pl.getName() + " already found.");
-                    //TODO CHECK IF DELETION NEEDED (if results are going to be used again)
-                    //placemarkList.remove(pl);
                     continue;
                 }
                 mMap.addMarker(new MarkerOptions().position(
                         new LatLng(pl.getLatitude(), pl.getLongitude())).title(pl.getDescription()).visible(true)
                         .icon(BitmapDescriptorFactory.fromResource(id)));
-                //TODO: SAVE MARKERS FOR LATER USE??
             }
-            //Toast.makeText(MapsActivity.this, "Map Loaded Successfully", Toast.LENGTH_SHORT).show();
             Log.i(TAG, "Placemarks successfully added to the map");
         } else {
             Log.e(TAG, "Placemarks not loaded!");
         }
     }
-
-    public void setAllWords(ArrayList<String[]> allWords){
-        this.allWords = allWords;
-    }
-
-
 
 }
 

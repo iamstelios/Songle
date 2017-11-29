@@ -14,7 +14,9 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
-
+/**
+ * Downloader class is used to download resources from the web
+ */
 public class Downloader {
 
     private static final String TAG = Downloader.class.getSimpleName();
@@ -22,17 +24,36 @@ public class Downloader {
     //Instantiating the parser for extracting Songs from xml
     private static final String ns = null;
 
+    /**
+     * Downloads the placemarks and places them on the map in MapsActivity
+     * @param URL The URL that contains the placemarks in xml format
+     */
     public void downloadPlacemarks(String URL){
         new DownloadPlacemarksTask().execute(URL);
     }
+    /**
+     * Downloads the lyrics and populates the allWords in MapsActivity
+     * @param URL The URL that contains the lyrics
+     */
     public void downloadLyrics(String URL){
         new DownloadLyricsTask().execute(URL);
     }
+    /**
+     *Downloads the songs and populates the songList in MainActivity
+     * @param URL The URL that contains the songs in xml format
+     */
     public void downloadSongs(String URL){
         new DownloadSongsTask().execute(URL);
     }
 
-    List<Song> parseSongs(InputStream in) throws XmlPullParserException,
+    /**
+     * Parse the songs from the xml format
+     * @param in InputStream
+     * @return List of Songs
+     * @throws XmlPullParserException
+     * @throws IOException
+     */
+    private List<Song> parseSongs(InputStream in) throws XmlPullParserException,
             IOException {
         try {
             XmlPullParser parser = Xml.newPullParser();
@@ -46,7 +67,13 @@ public class Downloader {
         }
     }
 
-    //Reading the XML feed
+    /**
+     * Reading the XML feed
+     * @param parser XmlPullParser
+     * @return List of Songs
+     * @throws XmlPullParserException
+     * @throws IOException
+     */
     private List<Song> readFeed(XmlPullParser parser) throws
             XmlPullParserException, IOException {
         List<Song> entries = new ArrayList<Song>();
@@ -66,7 +93,13 @@ public class Downloader {
         return entries;
     }
 
-    //Reading a song from the XML feed
+    /**
+     * Reading a song from the XML feed.
+     * @param parser XmlPullParser
+     * @return Song
+     * @throws XmlPullParserException
+     * @throws IOException
+     */
     private Song readSong(XmlPullParser parser) throws
             XmlPullParserException, IOException {
         parser.require(XmlPullParser.START_TAG, ns, "Song");
@@ -93,7 +126,13 @@ public class Downloader {
         return new Song(number, artist, title, link);
     }
 
-    //Reading a number of a song
+    /**
+     * Reading the number of a song
+     * @param parser XmlPullParser
+     * @return Number of a song
+     * @throws IOException
+     * @throws XmlPullParserException
+     */
     private String readNumber(XmlPullParser parser) throws IOException,
             XmlPullParserException {
         parser.require(XmlPullParser.START_TAG, ns, "Number");
@@ -102,7 +141,13 @@ public class Downloader {
         return number;
     }
 
-    //Reading an artist
+    /**
+     * Reading an artist
+     * @param parser XmlPullParser
+     * @return Artist
+     * @throws IOException
+     * @throws XmlPullParserException
+     */
     private String readArtist(XmlPullParser parser) throws IOException,
             XmlPullParserException {
         parser.require(XmlPullParser.START_TAG, ns, "Artist");
@@ -111,7 +156,13 @@ public class Downloader {
         return artist;
     }
 
-    //Reading a title of a song
+    /**
+     * Reading a title of a song
+     * @param parser XmlPullParser
+     * @return Title
+     * @throws IOException
+     * @throws XmlPullParserException
+     */
     private String readTitle(XmlPullParser parser) throws IOException,
             XmlPullParserException {
         parser.require(XmlPullParser.START_TAG, ns, "Title");
@@ -120,7 +171,13 @@ public class Downloader {
         return title;
     }
 
-    //Reading a link
+    /**
+     * Reading a link of a song
+     * @param parser XmlPullParser
+     * @return Link
+     * @throws IOException
+     * @throws XmlPullParserException
+     */
     private String readLink(XmlPullParser parser) throws IOException,
             XmlPullParserException {
         parser.require(XmlPullParser.START_TAG, ns, "Link");
@@ -129,7 +186,13 @@ public class Downloader {
         return link;
     }
 
-    //Reading text
+    /**
+     * Reading text from the XmlPullParser
+     * @param parser XmlPullParser
+     * @return Text
+     * @throws IOException
+     * @throws XmlPullParserException
+     */
     private String readText(XmlPullParser parser) throws IOException,
             XmlPullParserException {
         String result = "";
@@ -140,7 +203,12 @@ public class Downloader {
         return result;
     }
 
-    //Skipping uninteresting tags in case they exist
+    /**
+     * Skipping uninteresting tags in case they exist
+     * @param parser XmlPullParser
+     * @throws XmlPullParserException
+     * @throws IOException
+     */
     private void skip(XmlPullParser parser) throws XmlPullParserException,
             IOException {
         if (parser.getEventType() != XmlPullParser.START_TAG) {
@@ -159,9 +227,12 @@ public class Downloader {
         }
     }
 
-
-    // Given a string representation of a URL, sets up a connection and gets
-    // an input stream.
+    /**
+     * Given a string representation of a URL, sets up a connection and gets an input stream.
+     * @param urlString URL in String form
+     * @return InputStream
+     * @throws IOException
+     */
     private InputStream downloadUrl(String urlString) throws IOException {
         URL url = new URL(urlString);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -175,6 +246,13 @@ public class Downloader {
         return conn.getInputStream();
     }
 
+    /**
+     * Loads the Songs from the Network
+     * @param urlString URL that the songs xml is located
+     * @return List of Songs
+     * @throws XmlPullParserException
+     * @throws IOException
+     */
     private List<Song> loadSongsFromNetwork(String urlString) throws
             XmlPullParserException, IOException {
         List<Song> songs;
@@ -184,8 +262,12 @@ public class Downloader {
         return songs;
     }
 
+    /**
+     * AsyncTask to download the songs and update the songList in the MainActivity
+     */
     private class DownloadSongsTask extends AsyncTask<String, Void, List<Song>> {
-        private static final String error_load = "Unable to load content. Check your network connection.";
+        private static final String error_load =
+                "Unable to load content. Check your network connection.";
         private static final String error_xml = "Error parsing XML song list.";
 
         @Override
@@ -193,11 +275,9 @@ public class Downloader {
             try {
                 return loadSongsFromNetwork(urls[0]);
             } catch (IOException e) {
-                //Toast.makeText(MapsActivity.this, error_load, Toast.LENGTH_SHORT).show();
                 Log.e(TAG, "DownloadSongsTask: " + error_load + " RETURNING NULL!");
                 return null;
             } catch (XmlPullParserException e) {
-                //Toast.makeText(MapsActivity.this, error_xml, Toast.LENGTH_SHORT).show();
                 Log.e(TAG, "DownloadSongsTask: " + error_xml + " RETURNING NULL!");
                 return null;
             }//TODO: CHECK ALL USES OF THE SONGS LIST ARE CHECKING NULL
@@ -210,8 +290,14 @@ public class Downloader {
         }
     }
 
-
-    List<Placemark> parsePlacemarkers(InputStream in) throws XmlPullParserException,
+    /**
+     * Parse the placemarkers from the xml format
+     * @param in InputStream
+     * @return List of Placemarks
+     * @throws XmlPullParserException
+     * @throws IOException
+     */
+    private List<Placemark> parsePlacemarkers(InputStream in) throws XmlPullParserException,
             IOException {
         try {
             XmlPullParser parser = Xml.newPullParser();
@@ -225,7 +311,13 @@ public class Downloader {
         }
     }
 
-    //Reading the XML feed
+    /**
+     * Reading the XML feed
+     * @param parser XmlPullParser
+     * @return List of Placemarks
+     * @throws XmlPullParserException
+     * @throws IOException
+     */
     private List<Placemark> readKmlFeed(XmlPullParser parser) throws
             XmlPullParserException, IOException {
         List<Placemark> entries = new ArrayList<Placemark>();
@@ -245,6 +337,13 @@ public class Downloader {
         return entries;
     }
 
+    /**
+     * Reading the document from the XML feed.
+     * @param parser XmlPullParser
+     * @return List of Placemarks
+     * @throws XmlPullParserException
+     * @throws IOException
+     */
     private List<Placemark> readDocument(XmlPullParser parser) throws
             XmlPullParserException, IOException {
         parser.require(XmlPullParser.START_TAG, ns, "Document");
@@ -264,7 +363,13 @@ public class Downloader {
         return entries;
     }
 
-    //Reading a Placemark from the XML feed
+    /**
+     * Reading a Placemark from the XML feed.
+     * @param parser XmlPullParser
+     * @return Placemark
+     * @throws XmlPullParserException
+     * @throws IOException
+     */
     private Placemark readPlacemark(XmlPullParser parser) throws
             XmlPullParserException, IOException {
         parser.require(XmlPullParser.START_TAG, ns, "Placemark");
@@ -296,7 +401,13 @@ public class Downloader {
         return new Placemark(name, description, latitude, longitude);
     }
 
-    //Reading the point of a placemark
+    /**
+     * Reading the point of a placemark
+     * @param parser XmlPullParser
+     * @return Point
+     * @throws IOException
+     * @throws XmlPullParserException
+     */
     private String readPoint(XmlPullParser parser) throws IOException,
             XmlPullParserException {
         parser.require(XmlPullParser.START_TAG, ns, "Point");
@@ -314,7 +425,13 @@ public class Downloader {
         return coordinates;
     }
 
-    //Reading a name of a placemark
+    /**
+     * Reading a name of a placemark
+     * @param parser XmlPullParser
+     * @return Name
+     * @throws IOException
+     * @throws XmlPullParserException
+     */
     private String readName(XmlPullParser parser) throws IOException,
             XmlPullParserException {
         parser.require(XmlPullParser.START_TAG, ns, "name");
@@ -323,7 +440,13 @@ public class Downloader {
         return name;
     }
 
-    //Reading the description
+    /**
+     * Reading the description
+     * @param parser XmlPullParser
+     * @return Description
+     * @throws IOException
+     * @throws XmlPullParserException
+     */
     private String readDescription(XmlPullParser parser) throws IOException,
             XmlPullParserException {
         parser.require(XmlPullParser.START_TAG, ns, "description");
@@ -332,7 +455,13 @@ public class Downloader {
         return description;
     }
 
-    //Reading a coordinates of the placemark
+    /**
+     * Reading a coordinates of the placemark
+     * @param parser XmlPullParser
+     * @return Coordinates
+     * @throws IOException
+     * @throws XmlPullParserException
+     */
     private String readCoordinates(XmlPullParser parser) throws IOException,
             XmlPullParserException {
         parser.require(XmlPullParser.START_TAG, ns, "coordinates");
@@ -341,7 +470,13 @@ public class Downloader {
         return coordinates;
     }
 
-    //Load the Kml file with all the Placemarks
+    /**
+     * Load the Kml file with all the Placemarks
+     * @param urlString URL that the placemarks xml is located
+     * @return List of Placemarks
+     * @throws XmlPullParserException
+     * @throws IOException
+     */
     private List<Placemark> loadKmlFromNetwork(String urlString) throws
             XmlPullParserException, IOException {
         List<Placemark> placemarks;
@@ -350,7 +485,9 @@ public class Downloader {
         }
         return placemarks;
     }
-
+    /**
+     * AsyncTask to download the Placemarks and update the map in the MapsActivity
+     */
     private class DownloadPlacemarksTask extends AsyncTask<String, Void, List<Placemark>> {
         private static final String error_load = "Unable to load content. Check your network connection.";
         private static final String error_xml = "Error parsing placemarkers list.";
@@ -377,8 +514,11 @@ public class Downloader {
         }
     }
 
-
-    //Manipulate the input file and return the parsed lyrics
+    /**
+     * Manipulate the input file and return the parsed lyrics
+     * @param stream InputStream
+     * @return List of the lyrics (words)
+     */
     private ArrayList<String[]> parseLyrics(InputStream stream) {
         Log.i(TAG, "Parsing the text file");
         ArrayList<String[]> words = new ArrayList<>();
@@ -396,6 +536,12 @@ public class Downloader {
         }
     }
 
+    /**
+     * Load the lyrics text file from the url given
+     * @param urlString URL that the lyrics are located
+     * @return List of Lyrics (words)
+     * @throws IOException
+     */
     private ArrayList<String[]> loadLyricsFromNetwork(String urlString)
             throws IOException {
         ArrayList<String[]> lyrics;
@@ -405,6 +551,9 @@ public class Downloader {
         return lyrics;
     }
 
+    /**
+     * AsyncTask to download the lyrics and update allWords in MapsActivity
+     */
     private class DownloadLyricsTask extends AsyncTask<String, Void, ArrayList<String[]>> {
         private static final String error_load = "Unable to load content. Check your network connection.";
 

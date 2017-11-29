@@ -1,18 +1,13 @@
 <resources>
     <string name="app_name">Songle</string>
-    <string name="action_settings">Settings</string>
     <string name="title_activity_maps">Map</string>
-    <string name="title_activity_settings">Settings</string>
-    <string name="submit_song_fab">Enter Song Name</string>
     <string name="dialog_difficulty">Select Difficulty</string>
     <string name="dialog_new_game_message">Starting a new game will reset your progress so far. Do you wish to continue?</string>
     <string name="dialog_new_game_title">New Game</string>
-    <string name="cancel">cancel</string>
-    <string name="ok">ok</string>
+    <string name="cancel">Cancel</string>
+    <string name="ok">OK</string>
     <string name="dialog_lyric_title">Lyric selected</string>
     <string name="dialog_lyric_message">Select from the options below.</string>
-    <string name="collect">Collect</string>
-    <string name="reveal">Reveal</string>
     <string-array name="difficulties">
         <item>Painful</item>
         <item>Hard</item>
@@ -25,112 +20,43 @@
         <item>Use Data &amp; WiFi</item>
     </string-array>
 
-
-    <!-- Strings related to Settings -->
-    <string name="pref_title_data_connection">Data Connection</string>
-    <string-array name="pref_list_connections">
-        <item>Any connection</item>
-        <item>Only over WiFi</item>
-    </string-array>
-    <string-array name="pref_list_connections_values">
-        <item>1</item>
-        <item>0</item>
-    </string-array>
-
-
-    <!-- Example General settings -->
-    <string name="pref_header_general">General</string>
-
-    <string name="pref_title_social_recommendations">Enable social recommendations</string>
-    <string name="pref_description_social_recommendations">Recommendations for people to contact
-        based on your message history
-    </string>
-
-    <string name="pref_title_display_name">Display name</string>
-    <string name="pref_default_display_name">John Smith</string>
-
-    <string name="pref_title_add_friends_to_messages">Add friends to messages</string>
-    <string-array name="pref_example_list_titles">
-        <item>Always</item>
-        <item>When possible</item>
-        <item>Never</item>
-    </string-array>
-    <string-array name="pref_example_list_values">
-        <item>1</item>
-        <item>0</item>
-        <item>-1</item>
-    </string-array>
-
-    <!-- Example settings for Data & Sync -->
-    <string name="pref_header_data_sync">Data &amp; sync</string>
-
-    <string name="pref_title_sync_frequency">Sync frequency</string>
-    <string-array name="pref_sync_frequency_titles">
-        <item>15 minutes</item>
-        <item>30 minutes</item>
-        <item>1 hour</item>
-        <item>3 hours</item>
-        <item>6 hours</item>
-        <item>Never</item>
-    </string-array>
-    <string-array name="pref_sync_frequency_values">
-        <item>15</item>
-        <item>30</item>
-        <item>60</item>
-        <item>180</item>
-        <item>360</item>
-        <item>-1</item>
-    </string-array>
-
-    <string-array name="list_preference_entries">
-        <item>Entry 1</item>
-        <item>Entry 2</item>
-        <item>Entry 3</item>
-    </string-array>
-
-    <string-array name="list_preference_entry_values">
-        <item>1</item>
-        <item>2</item>
-        <item>3</item>
-    </string-array>
-
-    <string-array name="multi_select_list_preference_default_value" />
-
-    <string name="pref_title_system_sync_settings">System sync settings</string>
-
-    <!-- Example settings for Notifications -->
-    <string name="pref_header_notifications">Notifications</string>
-
-    <string name="pref_title_new_message_notifications">New message notifications</string>
-
-    <string name="pref_title_ringtone">Ringtone</string>
-    <string name="pref_ringtone_silent">Silent</string>
-
-    <string name="pref_title_vibrate">Vibrate</string>
-
-
     <string name="new_game_toast">New Game Started!</string>
     <string name="continue_toast">Game continued!</string>
     <string name="difficulty_easy">5</string>
     <string name="score_image_description">Score: </string>
-    <!--string name="dialog_submit_message">Correct: +500 points. \nWrong: -100 points.</string-->
     <string name="dialog_submit_title">Guess the Song</string>
     <string name="submit">Submit</string>
     <string name="dialog_complete_title">Congratulations!</string>
-    <!--string name="dialog_complete_message">You\'ve passed all songs! Last guess\: </string-->
     <string name="subtitle_main">Test your music knowledge while exploring George Square Campus</string>
     <string name="songs_not_loaded_error">Songs not loaded. Check your connection.</string>
-    <string name="unexpected_lyric">Lyric is corrupted :(</string>
+    <string name="unexpected_lyric">Lyric is corrupted</string>
     <string name="lyric_text_not_loaded">Lyric cannot be loaded your check connection</string>
     <string name="lyrics_connection_error">Lyrics not loaded. Check your connection.</string>
     <string name="distance_image_description">Distance walked this song: </string>
-    <!--string name="dialog_skip_song">Are you sure that you want to skip this song? (-750 points)</1string-->
     <string name="dialog_skip_song_title">Skip Song</string>
     <string name="skip">Skip</string>
     <string name="title_activity_lyrics">Lyrics Found</string>
-    <!--string name="dialog_complete_message_skipped">Game Completed! \nTry to pass the game in a harder difficulty without skipping songs for extra challenge.</string-->
-    <string name="dialog_complete_message_skipped">Game Completed!</string>
-    <string name="dialog_complete_message">Game completed! Last guess:</string>
     <string name="internet_connection_toast">You need an internet connection to play the game!</string>
+    <string name="toast_connection">Please check your connection, for Songle to download the songs</string>
+    <string name="dialog_skipped_msg" formatted="false">You\'ve skipped the song. \nYou\'ve walked %dm failing to guess the song.</string>
+    <string name="dialog_correct_msg" formatted="false">You\'ve progressed to the next song! \nYou\'ve walked %dm earning you %d bonus points trying to guess: %s - %s.</string>
+    <string name="toast_location_error">Please open location services before trying to zoom to your location</string>
+    <string name="toast_no_points">Not enough points to complete action.</string>
+    <string name="toast_score_zero">Your score dropped to zero, but you can still keep guessing the song.</string>
+    <string name="dialog_submit" formatted="false">Enter the title of the song. \nCorrect: +%d points. \nWrong: -%d points.</string>
+    <string name="dialog_title_skipped">Skipped song :(</string>
+    <string name="dialog_title_correct">Congrats!</string>
+    <string name="listen_youtube">Listen on Youtube</string>
+    <string name="toast_wrong_song">Wrong Song :( Try Again.</string>
+    <string name="toast_revealed">Yay! You\'ve revealed:</string>
+    <string name="toast_collected">Congratulations! You\'ve collected:</string>
+    <string name="toast_error_location_track">You must open location services and track your location first!</string>
+    <string name="dialog_completed_skipped_message" formatted="false">Game Completed!\nFinal score: %d\nYou\'ve guessed %d out of %d songs.</string>
+    <string name="dialog_completed_correct_message" formatted="false">Game completed!\nLast guess: %s - %s \nFinal score: %d \nYou\'ve guessed %d out of %d songs.</string>
+    <string name="dialog_stats_message" formatted="false">Total distance travelled: %dm\n\nHighest score: %d\n\nTotal number of songs found: %d\n\nGuessing Accuracy: %d%%</string>
+    <string name="dialog_connection_title">Choose data connection settings</string>
+    <string name="toast_wifi_only">Downloads are only over WiFi now!</string>
+    <string name="toast_wifi_data">Downloads are allowed with both WiFi and Data now!</string>
+    <string name="stats">Stats</string>
 
 </resources>
