@@ -39,8 +39,7 @@ public class MusicService extends Service {
         {
             //Set the background music to loop indefinitely
             mPlayer.setLooping(true);
-            //TODO CHECK, was 100,100
-            mPlayer.setVolume(0.5f,0.5f);
+            mPlayer.setVolume(100,100);
         }
 
         mPlayer.setOnErrorListener(new OnErrorListener() {

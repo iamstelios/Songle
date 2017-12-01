@@ -63,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
     /**
      * List of all the Songs in the game
      */
-    private List<Song> songList;
+    private static List<Song> songList;
 
     /**
      * Receiver used to check the connection
@@ -138,7 +138,7 @@ public class MainActivity extends AppCompatActivity {
      * Getter method for songList
      * @return songList
      */
-    public List<Song> getSongList() {
+    public static List<Song> getSongList() {
         return songList;
     }
 

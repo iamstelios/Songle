@@ -29,8 +29,6 @@
     <string name="dialog_complete_title">Congratulations!</string>
     <string name="subtitle_main">Test your music knowledge while exploring George Square Campus</string>
     <string name="songs_not_loaded_error">Songs not loaded. Check your connection.</string>
-    <string name="unexpected_lyric">Lyric is corrupted</string>
-    <string name="lyric_text_not_loaded">Lyric cannot be loaded your check connection</string>
     <string name="lyrics_connection_error">Lyrics not loaded. Check your connection.</string>
     <string name="distance_image_description">Distance walked this song: </string>
     <string name="dialog_skip_song_title">Skip Song</string>
@@ -39,7 +37,7 @@
     <string name="internet_connection_toast">You need an internet connection to play the game!</string>
     <string name="toast_connection">Please check your connection, for Songle to download the songs</string>
     <string name="dialog_skipped_msg" formatted="false">You\'ve skipped the song. \nYou\'ve walked %dm failing to guess the song.</string>
-    <string name="dialog_correct_msg" formatted="false">You\'ve progressed to the next song! \nYou\'ve walked %dm earning you %d bonus points trying to guess: %s - %s.</string>
+    <string name="dialog_correct_msg" formatted="false">You\'ve progressed to the next song! \nYou\'ve walked %dm earning you %d bonus points trying to guess: \n%s - %s.</string>
     <string name="toast_location_error">Please open location services before trying to zoom to your location</string>
     <string name="toast_no_points">Not enough points to complete action.</string>
     <string name="toast_score_zero">Your score dropped to zero, but you can still keep guessing the song.</string>
@@ -48,8 +46,8 @@
     <string name="dialog_title_correct">Congrats!</string>
     <string name="listen_youtube">Listen on Youtube</string>
     <string name="toast_wrong_song">Wrong Song :( Try Again.</string>
-    <string name="toast_revealed">Yay! You\'ve revealed:</string>
-    <string name="toast_collected">Congratulations! You\'ve collected:</string>
+    <string name="toast_revealed">"Yay! You\'ve revealed: "</string>
+    <string name="toast_collected">"Congratulations! You\'ve collected: "</string>
     <string name="toast_error_location_track">You must open location services and track your location first!</string>
     <string name="dialog_completed_skipped_message" formatted="false">Game Completed!\nFinal score: %d\nYou\'ve guessed %d out of %d songs.</string>
     <string name="dialog_completed_correct_message" formatted="false">Game completed!\nLast guess: %s - %s \nFinal score: %d \nYou\'ve guessed %d out of %d songs.</string>

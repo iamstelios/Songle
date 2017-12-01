@@ -63,8 +63,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleApiClient mGoogleApiClient;
     private final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
 
-    //TODO: CHECK WHAT HAPPENS WHEN I DONT HAVE PERMISSIONS AND CHANGE ACCORDINGLY
-    //private boolean mLocationPermissionGranted = false;
     /**
      * Last Location received from the GPS
      */
@@ -86,20 +84,39 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      * <p>In form line:word e.g. "3:5"</p>
      */
     private Set<String> lyricsFound;
+
     /**
      * The points accumulated by the player
      * <p>Normally should be always positive</p>
      */
-    private int points;
+    private static int points;
+
+    /**
+     * Getter for points - Used for testing
+     * @return points
+     */
+    public static int getPoints() {
+        return points;
+    }
+
     /**
      * Level of difficulty in form "1"
      * Difficulty can range from 1 to 5, with 1 the hardest and 5 the easiest.
      */
     private String difficulty;
+
     /**
-     * Number of the currect song to be found
+     * Number of the current song to be found
      */
-    private String songNumber;
+    private static String songNumber;
+    /**
+     * Getter for current song number - Used for testing
+     * @return Current song number
+     */
+    public static String getSongNumber() {
+        return songNumber;
+    }
+
     //URLs used for retrieving the remote data
     private final String KML_URL =
             "http://www.inf.ed.ac.uk/teaching/courses/selp/data/songs/%s/map%s.kml";
@@ -210,52 +227,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     /**
-     * Receives the lyric and returns the actual word
-     *
-     * @param lyric Lyric in line:word form (e.g.15:3)
-     * @return Actual word (e.g. "Mama")
-     */
-    private String lyricToWord(String lyric) {
-        // Split the lyric so we separate the line from the word
-        // Position 0 has the line number and position 1 has the word number
-        String[] lineWord = lyric.split(":");
-        try {
-            int lineNum = Integer.parseInt(lineWord[0]);
-            int wordNum = Integer.parseInt(lineWord[1]);
-            // The word is located in lineNum-1 because the index starts with 0
-            // Word position in the line is wordNum+1 because position 1 is the line Number
-            return allWords.get(lineNum - 1)[wordNum + 1];
-        } catch (IndexOutOfBoundsException e) {
-            //Lyric values does not match the text
-            Log.e(TAG, "Unexpected lyric found!");
-            return getString(R.string.unexpected_lyric);
-        } catch (NullPointerException e) {
-            // Normally this case shouldn't be reached because each action that
-            // calls lyricToWord ensures allWords is populated
-            Log.e(TAG, "allWords not initialized");
-            return getString(R.string.lyric_text_not_loaded);
-        }
-    }
-
-    /**
-     * Finds the words from a list of lyrics in line:word form
-     *
-     * @param lyricsFound List of lyrics in line:word form
-     * @return List of actual words of lyrics
-     */
-    private ArrayList<String> findWordsFound(Set<String> lyricsFound) {
-        if (lyricsFound == null) {
-            Log.e(TAG, "Lyrics found null, returning EMPTY list.");
-            return new ArrayList<>();
-        }
-        ArrayList<String> wordsFound = new ArrayList<>();
-        for (String lyric : lyricsFound) {
-            wordsFound.add(lyricToWord(lyric));
-        }
-        return wordsFound;
-    }
-
-    /**
      * Updates the TextView that shows the number of songs found
      */
     private void updateSongsFoundText() {
@@ -340,23 +311,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     /**
-     * Return the Song instance given the song's number
-     *
-     * @param songNumber Number of song
-     * @return Song instance
-     */
-    private Song getSong(String songNumber) {
-        try {
-            for (Song song : songList) {
-                if (song.getNumber().equals(songNumber)) return song;
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "Tried to access song list when not loaded!");
-        }
-        return null;
-    }
-
-    /**
      * Change the score value and update relevant properties
      *
      * @param points Updated score
@@ -427,7 +381,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      * @param skipped Was the song skipped? (T/F)
      */
     private void progressSong(final Song song, boolean skipped) {
-        //TODO: Make a test about this case
         SharedPreferences.Editor editor = getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE).edit();
         //Changing the score
         if (skipped) {
@@ -597,7 +550,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public static boolean roughlyEquals(String a, String b) {
         // This function was made to allow very similar submissions to be accepted.
         // Minor grammatical mistakes can now pass.
-        float threshold = 0.9f;
+        float threshold = 0.85f;
         //Comparison is case insensitive
         a = a.toLowerCase(Locale.ENGLISH);
         b = b.toLowerCase(Locale.ENGLISH);
@@ -627,7 +580,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         Log.i(TAG, "Map Created");
 
         //songList will always be populated as the Maps Activity won't open otherwise
-        songList = MainActivity.getInstance().getSongList();
+        songList = MainActivity.getSongList();
 
         //Retrieve the user preferences and stats
         SharedPreferences prefs = getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE);
@@ -660,7 +613,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         submitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                final Song song = getSong(songNumber);
+                final Song song = Song.getSong(songNumber, songList);
                 if (song == null) {
                     //Songs haven't been loaded
                     Toast.makeText(MapsActivity.this,
@@ -746,7 +699,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         skipSongButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                final Song song = getSong(songNumber);
+                final Song song = Song.getSong(songNumber, songList);
                 if (song == null) {
                     Toast.makeText(MapsActivity.this,
                             R.string.songs_not_loaded_error,
@@ -793,7 +746,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     Toast.makeText(MapsActivity.this, R.string.lyrics_connection_error, Toast.LENGTH_SHORT).show();
                     return;
                 }
-                ArrayList<String> wordsFound = findWordsFound(lyricsFound);
+                ArrayList<String> wordsFound = Song.findWordsFound(lyricsFound,allWords);
                 //Go to LyricsActivity
                 Intent intent = new Intent(MapsActivity.this, LyricsActivity.class);
                 //Put the words found as extra to populate the list
@@ -965,7 +918,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     addToLyricsFound(lyricName);
                     points += pointsToScore.get(lyricClassification);
                     updateScore(points);
-                    Toast.makeText(MapsActivity.this, getString(R.string.toast_collected) + lyricToWord(lyricName), Toast.LENGTH_LONG).show();
+                    Toast.makeText(MapsActivity.this, getString(R.string.toast_collected) + Song.lyricToWord(lyricName,allWords), Toast.LENGTH_LONG).show();
                     Log.i(TAG, "User collected lyric " + lyricName + " and scored " +
                             pointsToScore.get(lyricClassification) + " points.");
                     marker.remove();
@@ -988,7 +941,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     addToLyricsFound(lyricName);
                     points -= pointsToDeduct.get(lyricClassification);
                     updateScore(points);
-                    Toast.makeText(MapsActivity.this, getString(R.string.toast_revealed) + lyricToWord(lyricName), Toast.LENGTH_LONG).show();
+                    Toast.makeText(MapsActivity.this, getString(R.string.toast_revealed) + Song.lyricToWord(lyricName,allWords), Toast.LENGTH_LONG).show();
                     Log.i(TAG, "User revealed lyric " + lyricName + " and deducted " +
                             pointsToDeduct.get(lyricClassification) + " points.");
                     marker.remove();
@@ -1024,7 +977,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // An unresolvable error has occurred and a connection to Google APIs
         // could not be established. Display an error message, or handle
         // the failure silently
-        //TODO: Throw a message popup to the user
         Toast.makeText(this, "Connection Failed", Toast.LENGTH_SHORT).show();
         Log.e(TAG, " >>>> onConnectionFailed");
     }
