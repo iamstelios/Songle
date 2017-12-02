@@ -4,13 +4,14 @@ import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.Resources;
 import android.net.Uri;
 import android.util.Log;
 import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.Random;
 import java.util.Set;
 
 /**
@@ -136,5 +137,27 @@ public class Song {
             wordsFound.add(lyricToWord(lyric, allWords));
         }
         return wordsFound;
+    }
+
+    /**
+     * Generate a new song number
+     * @param total Total number of songs
+     * @param songsUsed Set of the
+     * @return
+     */
+    public static String generateNewSongNum(int total, Set<String> songsUsed) {
+        String songNum;
+        int min = 1;
+        int max = total;
+        if(total<=songsUsed.size()){
+            //Should never be the case as the program won't call this method if all songs used
+            Log.e(TAG,"Tried to generated new song number white the game is complete");
+            return "Game complete!";
+        }
+        do {
+            int random = new Random().nextInt((max - min) + 1) + min;
+            songNum = String.format(Locale.ENGLISH, "%02d", random);
+        } while (songsUsed.contains(songNum));
+        return songNum;
     }
 }

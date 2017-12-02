@@ -9,6 +9,7 @@ import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.location.Location;
 import android.net.ConnectivityManager;
+import android.support.annotation.VisibleForTesting;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
@@ -89,13 +90,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      * The points accumulated by the player
      * <p>Normally should be always positive</p>
      */
-    private static int points;
+    private int points;
 
     /**
      * Getter for points - Used for testing
      * @return points
      */
-    public static int getPoints() {
+    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+    public int getPoints() {
         return points;
     }
 
@@ -108,12 +110,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     /**
      * Number of the current song to be found
      */
-    private static String songNumber;
+    private String songNumber;
     /**
      * Getter for current song number - Used for testing
      * @return Current song number
      */
-    public static String getSongNumber() {
+    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+    public String getSongNumber() {
         return songNumber;
     }
 
@@ -469,7 +472,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         songNumber = MainActivity.getInstance().getNewSongNum(songList.size());
         editor.putString(MainActivity.SONG_KEY, songNumber);
         //Reset the lyrics found
-        lyricsFound = new HashSet<String>();
+        lyricsFound = new HashSet<>();
         editor.putStringSet(MainActivity.LYRICS_FOUND_KEY, lyricsFound);
         editor.apply();
 
@@ -609,7 +612,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         this.registerReceiver(receiver, filter);
 
         //Submit button listener
-        FloatingActionButton submitButton = (FloatingActionButton) findViewById(R.id.submitButton);
+        FloatingActionButton submitButton = findViewById(R.id.submitButton);
         submitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -695,7 +698,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
 
         //Skip song floating action button listener
-        FloatingActionButton skipSongButton = (FloatingActionButton) findViewById(R.id.skipSongButton);
+        FloatingActionButton skipSongButton = findViewById(R.id.skipSongButton);
         skipSongButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -738,7 +741,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
 
         //Go to lyrics floating action button listener
-        FloatingActionButton lyrics_button = (FloatingActionButton) findViewById(R.id.lyricsButton);
+        FloatingActionButton lyrics_button = findViewById(R.id.lyricsButton);
         lyrics_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

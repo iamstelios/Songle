@@ -10,6 +10,7 @@ import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.annotation.VisibleForTesting;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -143,7 +144,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Chooses a new song number from the songs not used yet
+     * Chooses a new song number from the songs not used yet and saves it
      * @param size Number of total songs
      * @return New song number
      */
@@ -152,14 +153,7 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences prefs = getSharedPreferences(USER_PREFS, MODE_PRIVATE);
         Set<String> songsUsed = prefs.getStringSet(SONGS_USED_KEY, new HashSet<String>());
 
-        String songNum;
-        int min = 1;
-        int max = size;
-        do {
-            //No need to check for completion as the program won't call this method if all songs used
-            int random = new Random().nextInt((max - min) + 1) + min;
-            songNum = String.format(Locale.ENGLISH, "%02d", random);
-        } while (songsUsed.contains(songNum));
+        String songNum = Song.generateNewSongNum(size, songsUsed);
         songsUsed.add(songNum);
         //Update the songs used set with the new song
         SharedPreferences.Editor editor = getSharedPreferences(USER_PREFS, MODE_PRIVATE).edit();
@@ -218,7 +212,8 @@ public class MainActivity extends AppCompatActivity {
      * Check if user has progress stored
      * @return True if user has progress
      */
-    private boolean hasProgress() {
+    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+    public boolean hasProgress() {
         //Check if user has progress by checking if difficulty is stored
         SharedPreferences prefs = getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE);
         return prefs.contains(DIFFICULTY_KEY);

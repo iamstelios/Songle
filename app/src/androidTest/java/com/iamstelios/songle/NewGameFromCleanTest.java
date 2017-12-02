@@ -6,6 +6,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.support.test.InstrumentationRegistry;
+import android.support.test.espresso.NoMatchingViewException;
+import android.support.test.espresso.ViewAssertion;
 import android.support.test.espresso.ViewInteraction;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
@@ -27,6 +29,7 @@ import org.junit.runner.RunWith;
 
 import java.io.File;
 
+import static android.content.Context.MODE_PRIVATE;
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.Espresso.pressBack;
 import static android.support.test.espresso.action.ViewActions.click;
@@ -35,6 +38,7 @@ import static android.support.test.espresso.action.ViewActions.replaceText;
 import static android.support.test.espresso.action.ViewActions.scrollTo;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
+import static android.support.test.espresso.matcher.ViewMatchers.isRoot;
 import static android.support.test.espresso.matcher.ViewMatchers.withClassName;
 import static android.support.test.espresso.matcher.ViewMatchers.withContentDescription;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
@@ -47,21 +51,19 @@ import static org.junit.Assert.assertTrue;
 
 /**
  * Creates a new game from a fresh start.
- * For the test to work correcty, these are the requirements:
+ * Checks that the continue button is not present when there is no progress
+ * and that it shows up after crating a new game.
+ * For the test to work correctly, these are the requirements:
  * - active internet connection
  * - location enabled
  * - permissions for location enabled
  */
 @LargeTest
 @RunWith(AndroidJUnit4.class)
-public class newGameTest {
+public class NewGameFromCleanTest {
 
     @Rule
     public ActivityTestRule<MainActivity> mActivityTestRule = new ActivityTestRule<>(MainActivity.class, false, false);
-
-    private Context getMainActivityContext() {
-        return mActivityTestRule.getActivity();
-    }
 
     /**
      * Clear all the Preferences so that the tests run on a clean environment
@@ -72,13 +74,18 @@ public class newGameTest {
         String[] sharedPreferencesFileNames = new File(root, "shared_prefs").list();
         if (sharedPreferencesFileNames != null) {
             for (String fileName : sharedPreferencesFileNames) {
-                InstrumentationRegistry.getTargetContext().getSharedPreferences(fileName.replace(".xml", ""), Context.MODE_PRIVATE).edit().clear().commit();
+                InstrumentationRegistry.getTargetContext()
+                        .getSharedPreferences(fileName.replace(".xml", ""), MODE_PRIVATE)
+                        .edit().clear().commit();
             }
         }
-        //MainActivity a = mActivityTestRule.getActivity().get;
+        //Launch the activity
         mActivityTestRule.launchActivity(null);
     }
 
+    /**
+     * Check the visibility of the continue button in a clean game and when some progress is made
+     */
     @Test
     public void newGameTest() {
         //Check if continue button is not visible at the start (no progress)
@@ -88,7 +95,8 @@ public class newGameTest {
 
         //Start a new Game
         ViewInteraction appCompatImageButton = onView(
-                allOf(withId(R.id.NewGameButton), withContentDescription("New Game"), isDisplayed()));
+                allOf(withId(R.id.NewGameButton),
+                        withContentDescription("New Game"), isDisplayed()));
         appCompatImageButton.perform(click());
 
         ViewInteraction appCompatTextView = onView(
@@ -121,63 +129,11 @@ public class newGameTest {
                 allOf(withId(R.id.songsFoundText),
                         isDisplayed()));
         songsFoundText.check(matches(withText("0")));
-
         //Check that the number of songs skipped in a new game is correct
         ViewInteraction songsSkippedText = onView(
                 allOf(withId(R.id.songsSkippedText),
                         isDisplayed()));
         songsSkippedText.check(matches(withText("0")));
-        //Submit a wrong song
-        ViewInteraction floatingActionButton = onView(
-                allOf(withId(R.id.submitButton), isDisplayed()));
-        floatingActionButton.perform(click());
-
-        ViewInteraction editText = onView(
-                allOf(withClassName(is("android.widget.EditText")),
-                        withParent(allOf(withId(R.id.custom),
-                                withParent(withId(R.id.customPanel)))),
-                        isDisplayed()));
-        editText.perform(click());
-
-        ViewInteraction editText2 = onView(
-                allOf(withClassName(is("android.widget.EditText")),
-                        withParent(allOf(withId(R.id.custom),
-                                withParent(withId(R.id.customPanel)))),
-                        isDisplayed()));
-        editText2.perform(replaceText("wrong song"), closeSoftKeyboard());
-
-        ViewInteraction appCompatButton = onView(
-                allOf(withId(android.R.id.button1), withText("Submit")));
-        appCompatButton.perform(scrollTo(), click());
-
-        //Check if points are deducted for wrong submission
-        scoreText.check(matches(withText("480")));
-
-        ViewInteraction skipSongButton = onView(
-                allOf(withId(R.id.skipSongButton), isDisplayed()));
-        skipSongButton.perform(click());
-
-        ViewInteraction appCompatButton2 = onView(
-                allOf(withId(android.R.id.button1), withText("Skip")));
-        appCompatButton2.perform(scrollTo(), click());
-
-        // Added a sleep statement to match the app's execution delay.
-        // The recommended way to handle such scenarios is to use Espresso idling resources:
-        // https://google.github.io/android-testing-support-library/docs/espresso/idling-resource/index.html
-        try {
-            Thread.sleep(5000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        ViewInteraction appCompatButton3 = onView(
-                allOf(withId(android.R.id.button1), withText("OK")));
-        appCompatButton3.perform(scrollTo(), click());
-
-        //Check if songs skipped number changed
-        songsSkippedText.check(matches(withText("1")));
-        //Check if points reduced from skipping
-        scoreText.check(matches(withText("380")));
         //Go back to MainActivity
         pressBack();
 

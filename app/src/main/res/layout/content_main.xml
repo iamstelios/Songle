@@ -64,19 +64,19 @@
         <ImageButton
             android:id="@+id/StatsButton"
             style="@style/ButtonsMain"
-            android:contentDescription="Difficulty"
+            android:contentDescription="Stats"
             app:srcCompat="@drawable/stats" />
 
         <ImageButton
             android:id="@+id/ConnectionButton"
             style="@style/ButtonsMain"
-            android:contentDescription="User"
+            android:contentDescription="Connection"
             app:srcCompat="@drawable/connection" />
 
         <ImageButton
             android:id="@+id/HelpButton"
             style="@style/ButtonsMain"
-            android:contentDescription="Highscores"
+            android:contentDescription="Help"
             app:srcCompat="@drawable/help" />
 
         <ImageButton
