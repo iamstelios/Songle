@@ -56,5 +56,8 @@
     <string name="toast_wifi_only">Downloads are only over WiFi now!</string>
     <string name="toast_wifi_data">Downloads are allowed with both WiFi and Data now!</string>
     <string name="stats">Stats</string>
+    <string name="songs_found">Songs Found:</string>
+    <string name="songs_skipped">Songs Skipped:</string>
+    <string name="total_songs">Total Songs:</string>
 
 </resources>

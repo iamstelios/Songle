@@ -12,54 +12,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingBottom="8dp">
-        <!--android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:app="http://schemas.android.com/apk/res-auto"
-            xmlns:tools="http://schemas.android.com/tools"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@color/primary_light"
-            tools:context="com.iamstelios.songle.HelpActivity"-->
-
-        <!--TextView
-            android:id="@+id/helpTitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="8dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="8dp"
-            android:text="Instructions"
-            android:textColor="@color/primary_text"
-            android:textSize="40sp"
-            android:textStyle="bold"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toTopOf="parent" /-->
-
-        <!--TextView
-            android:id="@+id/helpGoal"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="8dp"
-            android:layout_marginRight="8dp"
-            android:text="Guess the song title by collecting its lyrics while exploring George Square Campus"
-            android:textColor="@color/primary_text"
-            android:textSize="25sp"
-            app:layout_constraintLeft_toRightOf="@+id/helpGoalTitle"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/helpGoalTitle"
-            android:layout_marginStart="8dp"
-            android:layout_marginEnd="8dp" />
-
-        <TextView
-            android:id="@+id/helpGoalTitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="Goal:"
-            android:textColor="@color/primary_text"
-            android:textSize="30sp"
-            android:textStyle="bold"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/helpTitle" /-->
 
         <RelativeLayout
             android:id="@+id/relativeLayoutGoal"
@@ -136,20 +88,6 @@
                 android:textSize="16sp" />
         </RelativeLayout>
 
-        <!--Using scroll view so smaller screens can see the instructions too -->
-        <!--ScrollView
-            android:layout_width="0dp"
-            android:layout_height="135dp"
-            android:layout_marginEnd="8dp"
-            android:layout_marginLeft="8dp"
-            android:layout_marginRight="8dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="10dp"
-            android:fillViewport="true"
-            android:isScrollContainer="true"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/relativeLayoutInstructions"-->
         <android.support.constraint.ConstraintLayout
             android:id="@+id/constraintLayoutGameScreen"
             android:layout_width="0dp"
@@ -363,91 +301,6 @@
                 android:text="(Very) Easy" />
 
         </RelativeLayout>
-
-        <!--/ScrollView-->
-
-
-        <!--TableLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/helpLyricsClassTitle"
-            app:layout_goneMarginLeft="16dp"
-            app:layout_goneMarginRight="16dp"
-            android:layout_marginTop="8dp">
-
-            <TableRow>
-                <TextView
-                    android:layout_column="1"
-                    android:text="Open..."
-                    android:padding="3dip" />
-                <TextView
-                    android:text="Ctrl-O"
-                    android:gravity="right"
-                    android:padding="3dip" />
-            </TableRow>
-
-            <TableRow>
-                <TextView
-                    android:layout_column="1"
-                    android:text="Save..."
-                    android:padding="3dip" />
-                <TextView
-                    android:text="Ctrl-S"
-                    android:gravity="right"
-                    android:padding="3dip" />
-            </TableRow>
-
-            <TableRow>
-                <TextView
-                    android:layout_column="1"
-                    android:text="Save As..."
-                    android:padding="3dip" />
-                <TextView
-                    android:text="Ctrl-Shift-S"
-                    android:gravity="right"
-                    android:padding="3dip" />
-            </TableRow>
-
-            <View
-                android:layout_height="2dip"
-                android:background="#FF909090" />
-
-            <TableRow>
-                <TextView
-                    android:text="X"
-                    android:padding="3dip" />
-                <TextView
-                    android:text="Import..."
-                    android:padding="3dip" />
-            </TableRow>
-
-            <TableRow>
-                <TextView
-                    android:text="X"
-                    android:padding="3dip" />
-                <TextView
-                    android:text="Export..."
-                    android:padding="3dip" />
-                <TextView
-                    android:text="Ctrl-E"
-                    android:gravity="right"
-                    android:padding="3dip" />
-            </TableRow>
-
-            <View
-                android:layout_height="2dip"
-                android:background="#FF909090" />
-
-            <TableRow>
-                <TextView
-                    android:layout_column="1"
-                    android:text="Quit"
-                    android:padding="3dip" />
-            </TableRow>
-
-        </TableLayout-->
 
     </android.support.constraint.ConstraintLayout>
 </ScrollView>

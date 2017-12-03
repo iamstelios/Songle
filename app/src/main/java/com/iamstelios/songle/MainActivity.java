@@ -47,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
     public static final String CURRENT_SONGS_SKIPPED_KEY = "current_songs_skipped";
     public static final String IS_MUSIC_ON_KEY = "is_music_on";
     public static final String SONGS_USED_KEY = "songs_used_key";
+
     /**
      * URL that the songs xml is located
      */

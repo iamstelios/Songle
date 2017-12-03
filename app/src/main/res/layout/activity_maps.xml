@@ -20,21 +20,6 @@
         map:layout_constraintHorizontal_bias="0.0"
         map:layout_constraintVertical_bias="0.0" />
 
-    <!--android.support.design.widget.FloatingActionButton
-        android:id="@+id/submitButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="top|left"
-        android:layout_marginBottom="70dp"
-        android:layout_marginRight="10dp"
-        android:clickable="true"
-        app:backgroundTint="@color/colorPrimary"
-        app:elevation="16dp"
-        app:fabSize="mini"
-        app:layout_anchor="@+id/map"
-        app:layout_anchorGravity="bottom|right"
-        app:srcCompat="@android:drawable/ic_menu_myplaces" /-->
-
     <!-- Use of FrameLayout to change the size (bigger) of the floating action button-->
     <FrameLayout
         android:layout_width="50dp"
@@ -73,21 +58,6 @@
             app:srcCompat="@drawable/music_sign" />
     </FrameLayout>
 
-    <!--android.support.design.widget.FloatingActionButton
-        android:id="@+id/lyricsButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="top|right"
-        android:layout_marginBottom="70dp"
-        android:layout_marginLeft="10dp"
-        android:clickable="true"
-        app:backgroundTint="@color/colorPrimary"
-        app:elevation="10dp"
-        app:fabSize="mini"
-        app:layout_anchor="@+id/map"
-        app:layout_anchorGravity="bottom|left"
-        app:srcCompat="@android:drawable/checkbox_on_background" /-->
-
     <FrameLayout
         android:layout_width="50dp"
         android:layout_height="50dp"
@@ -106,76 +76,6 @@
             app:srcCompat="@drawable/playlist_icon" />
     </FrameLayout>
 
-    <!--ImageView
-        android:id="@+id/scoreImage"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="5dp"
-        android:adjustViewBounds="true"
-        android:scaleType="fitCenter"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:srcCompat="@drawable/score"
-        android:contentDescription="@string/score_image_description" /-->
-    <!-- Also add app:layout_constraintLeft_toRightOf="@+id/scoreImage" to the text view -->
-    <!--TextView
-        android:id="@+id/scoreTitleText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="16dp"
-        android:layout_marginTop="16dp"
-        android:background="@color/primary_light"
-        android:text="@string/score_image_description"
-        android:textColor="@color/primary_text"
-        android:textSize="36sp"
-        android:textStyle="bold"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginStart="16dp" />
-
-    <TextView
-        android:id="@+id/scoreText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="5dp"
-        android:layout_marginTop="16dp"
-        android:background="@color/primary_light"
-        android:text="#SCORE#"
-        android:textColor="@color/primary_text"
-        android:textSize="36sp"
-        android:textStyle="bold"
-        app:layout_constraintLeft_toRightOf="@+id/scoreTitleText"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/songDistanceTitleText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="16dp"
-        android:layout_marginTop="10dp"
-        android:background="#80676767"
-        android:text="@string/distance_image_description"
-        android:textColor="@color/primary_text"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/scoreTitleText"
-        android:layout_marginStart="16dp" />
-
-    <TextView
-        android:id="@+id/songDistanceText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="5dp"
-        android:layout_marginTop="10dp"
-        android:background="@color/primary_light"
-        android:text="#DIST#"
-        android:textColor="@color/primary_text"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        app:layout_constraintLeft_toRightOf="@+id/songDistanceTitleText"
-        app:layout_constraintTop_toBottomOf="@+id/scoreText" /-->
-
     <android.support.constraint.ConstraintLayout
         android:layout_width="0dp"
         android:layout_height="105dp"
@@ -188,8 +88,7 @@
             android:id="@+id/scoreTitleText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="16dp"
-            android:layout_marginStart="16dp"
+            android:layout_marginStart="10dp"
             android:layout_marginTop="6dp"
             android:text="@string/score_image_description"
             android:textColor="@color/primary_text"
@@ -202,7 +101,6 @@
             android:id="@+id/scoreText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="6dp"
             android:layout_marginStart="5dp"
             android:layout_marginTop="6dp"
             android:text="#SCORE#"
@@ -216,8 +114,7 @@
             android:id="@+id/songDistanceTitleText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="16dp"
-            android:layout_marginStart="16dp"
+            android:layout_marginStart="10dp"
             android:layout_marginTop="1dp"
             android:text="@string/distance_image_description"
             android:textColor="@color/primary_text"
@@ -244,10 +141,9 @@
             android:id="@+id/songsFoundTitleText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="16dp"
-            android:layout_marginStart="16dp"
+            android:layout_marginStart="10dp"
             android:layout_marginTop="5dp"
-            android:text="Songs Found:"
+            android:text="@string/songs_found"
             android:textColor="@color/primary_text"
             android:textSize="12sp"
             android:textStyle="bold"
@@ -258,8 +154,7 @@
             android:id="@+id/songsFoundText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="6dp"
-            android:layout_marginStart="5dp"
+            android:layout_marginStart="2dp"
             android:layout_marginTop="5dp"
             android:text="#F#"
             android:textColor="@color/primary_text"
@@ -272,10 +167,9 @@
             android:id="@+id/songsSkippedTitleText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="10dp"
-            android:layout_marginStart="10dp"
+            android:layout_marginStart="5dp"
             android:layout_marginTop="5dp"
-            android:text="Songs Skipped:"
+            android:text="@string/songs_skipped"
             android:textColor="@color/primary_text"
             android:textSize="12sp"
             android:textStyle="bold"
@@ -286,14 +180,39 @@
             android:id="@+id/songsSkippedText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="6dp"
-            android:layout_marginStart="5dp"
+            android:layout_marginStart="2dp"
             android:layout_marginTop="5dp"
             android:text="#S#"
             android:textColor="@color/primary_text"
             android:textSize="12sp"
             android:textStyle="bold"
             app:layout_constraintLeft_toRightOf="@+id/songsSkippedTitleText"
+            app:layout_constraintTop_toBottomOf="@+id/songDistanceText" />
+
+        <TextView
+            android:id="@+id/songsTotalTitleText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:layout_marginTop="5dp"
+            android:text="@string/total_songs"
+            android:textColor="@color/primary_text"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            app:layout_constraintLeft_toRightOf="@id/songsSkippedText"
+            app:layout_constraintTop_toBottomOf="@+id/songDistanceTitleText" />
+
+        <TextView
+            android:id="@+id/songsTotalText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="2dp"
+            android:layout_marginTop="5dp"
+            android:text="#T#"
+            android:textColor="@color/primary_text"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            app:layout_constraintLeft_toRightOf="@+id/songsTotalTitleText"
             app:layout_constraintTop_toBottomOf="@+id/songDistanceText" />
 
         <android.support.design.widget.FloatingActionButton

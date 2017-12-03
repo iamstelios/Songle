@@ -601,6 +601,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         updateSongsSkippedText();
         songDistance = prefs.getFloat(MainActivity.SONG_DIST_KEY, 0);
         updateDistanceText();
+        //Set the Total Songs textview
+        TextView songsSkippedText = findViewById(R.id.songsTotalText);
+        songsSkippedText.setText(String.valueOf(songList.size()));
 
         Log.i(TAG, "Song Number: " + songNumber + " Difficulty: " + difficulty);
 
