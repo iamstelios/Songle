@@ -152,11 +152,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      */
     private static final Map<String, Integer> pointsToDeduct = new HashMap<String, Integer>() {
         {
-            put("veryinteresting", 400);
-            put("interesting", 200);
-            put("notboring", 100);
-            put("boring", 50);
-            put("unclassified", 500);
+            put("veryinteresting", 300);
+            put("interesting", 180);
+            put("notboring", 120);
+            put("boring", 60);
+            put("unclassified", 30);
         }
     };
 
@@ -166,11 +166,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      */
     private static final Map<String, Integer> pointsToScore = new HashMap<String, Integer>() {
         {
-            put("veryinteresting", 50);
-            put("interesting", 40);
-            put("notboring", 25);
-            put("boring", 10);
-            put("unclassified", 200);
+            put("veryinteresting", 100);
+            put("interesting", 60);
+            put("notboring", 40);
+            put("boring", 20);
+            put("unclassified", 10);
         }
     };
 

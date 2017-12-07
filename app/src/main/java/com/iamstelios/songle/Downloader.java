@@ -280,7 +280,7 @@ public class Downloader {
             } catch (XmlPullParserException e) {
                 Log.e(TAG, "DownloadSongsTask: " + error_xml + " RETURNING NULL!");
                 return null;
-            }//TODO: CHECK ALL USES OF THE SONGS LIST ARE CHECKING NULL
+            }
         }
 
         @Override
@@ -504,7 +504,7 @@ public class Downloader {
                 //Toast.makeText(MapsActivity.this, error_xml, Toast.LENGTH_SHORT).show();
                 Log.e(TAG, "DownloadPlacemarksTask: " + error_xml + " RETURNING NULL!");
                 return null;
-            }//TODO: CHECK ALL USES OF THE PLACEMARKS LIST ARE CHECKING NULL
+            }
         }
 
         @Override
