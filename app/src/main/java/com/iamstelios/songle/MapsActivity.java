@@ -242,7 +242,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      */
     private void addSongsFound() {
         SharedPreferences.Editor editor =
-                getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE).edit();
+                getSharedPreferences(MainActivity.SESSION_PREFS, MODE_PRIVATE).edit();
         songsFound++;
         editor.putInt(MainActivity.CURRENT_SONGS_FOUND_KEY, songsFound);
         editor.apply();
@@ -263,7 +263,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      */
     private void addSongsSkipped() {
         SharedPreferences.Editor editor =
-                getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE).edit();
+                getSharedPreferences(MainActivity.SESSION_PREFS, MODE_PRIVATE).edit();
         songsSkipped++;
         editor.putInt(MainActivity.CURRENT_SONGS_SKIPPED_KEY, songsSkipped);
         editor.apply();
@@ -295,7 +295,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             Log.i(TAG, "updateDistance: Distance too close, so not used.");
         } else {
             SharedPreferences.Editor editor =
-                    getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE).edit();
+                    getSharedPreferences(MainActivity.SESSION_PREFS, MODE_PRIVATE).edit();
             songDistance += distanceToLast;
             editor.putFloat(MainActivity.SONG_DIST_KEY, songDistance);
             editor.apply();
@@ -324,7 +324,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         scoreText.setText(String.valueOf(points));
         //Save the score
         SharedPreferences.Editor editor =
-                getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE).edit();
+                getSharedPreferences(MainActivity.SESSION_PREFS, MODE_PRIVATE).edit();
         editor.putInt(MainActivity.POINTS_KEY, points);
         editor.apply();
         //Check if highscore
@@ -348,7 +348,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private void addToLyricsFound(String lyric) {
         lyricsFound.add(lyric);
         SharedPreferences.Editor editor =
-                getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE).edit();
+                getSharedPreferences(MainActivity.SESSION_PREFS, MODE_PRIVATE).edit();
         editor.putStringSet(MainActivity.LYRICS_FOUND_KEY, lyricsFound);
         editor.apply();
     }
@@ -371,7 +371,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      * @return true if game completed, false otherwise
      */
     private boolean isComplete(int songsCount) {
-        SharedPreferences prefs = getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE);
+        SharedPreferences prefs = getSharedPreferences(MainActivity.SESSION_PREFS, MODE_PRIVATE);
         Set<String> songsUsed =
                 prefs.getStringSet(MainActivity.SONGS_USED_KEY, new HashSet<String>());
         return songsUsed.size() >= songsCount;
@@ -384,7 +384,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      * @param skipped Was the song skipped? (T/F)
      */
     private void progressSong(final Song song, boolean skipped) {
-        SharedPreferences.Editor editor = getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE).edit();
+        SharedPreferences.Editor editor = getSharedPreferences(MainActivity.SESSION_PREFS, MODE_PRIVATE).edit();
         //Changing the score
         if (skipped) {
             Log.i(TAG, "User skipped song");
@@ -586,7 +586,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         songList = MainActivity.getSongList();
 
         //Retrieve the user preferences and stats
-        SharedPreferences prefs = getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE);
+        SharedPreferences prefs = getSharedPreferences(MainActivity.SESSION_PREFS, MODE_PRIVATE);
         difficulty =
                 prefs.getString(MainActivity.DIFFICULTY_KEY, getString(R.string.difficulty_easy));
         songNumber =

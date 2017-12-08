@@ -73,7 +73,7 @@ public class SkipSongTest {
 
         //Retrieve the current song number saved to be compared with after skipping
         SharedPreferences prefs = mActivityTestRule.getActivity()
-                .getSharedPreferences(MainActivity.USER_PREFS, Context.MODE_PRIVATE);
+                .getSharedPreferences(MainActivity.SESSION_PREFS, Context.MODE_PRIVATE);
         String previousSongNum = prefs.getString(MainActivity.SONG_KEY, "ERROR404");
         //Save the Score to be compared afterwards
         int previousScore = prefs.getInt(MainActivity.POINTS_KEY,0);

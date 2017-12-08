@@ -31,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = MainActivity.class.getSimpleName();
 
     //Used as the keys to the user preferences
-    public static final String USER_PREFS = "user_preferences";
+    public static final String SESSION_PREFS = "session_preferences";
     public static final String SONG_KEY = "song_key";
     public static final String DIFFICULTY_KEY = "difficulty_key";
     public static final String LYRICS_FOUND_KEY = "lyrics_found_key";
@@ -151,13 +151,13 @@ public class MainActivity extends AppCompatActivity {
      */
     public String getNewSongNum(int size) {
 
-        SharedPreferences prefs = getSharedPreferences(USER_PREFS, MODE_PRIVATE);
+        SharedPreferences prefs = getSharedPreferences(SESSION_PREFS, MODE_PRIVATE);
         Set<String> songsUsed = prefs.getStringSet(SONGS_USED_KEY, new HashSet<String>());
 
         String songNum = Song.generateNewSongNum(size, songsUsed);
         songsUsed.add(songNum);
         //Update the songs used set with the new song
-        SharedPreferences.Editor editor = getSharedPreferences(USER_PREFS, MODE_PRIVATE).edit();
+        SharedPreferences.Editor editor = getSharedPreferences(SESSION_PREFS, MODE_PRIVATE).edit();
         editor.putStringSet(SONGS_USED_KEY, songsUsed);
         editor.apply();
         return songNum;
@@ -177,7 +177,7 @@ public class MainActivity extends AppCompatActivity {
                         difficulty = String.valueOf(which + 1);
                         //Resetting the values of the game
                         SharedPreferences.Editor editor =
-                                getSharedPreferences(USER_PREFS, MODE_PRIVATE).edit();
+                                getSharedPreferences(SESSION_PREFS, MODE_PRIVATE).edit();
                         editor.putString(DIFFICULTY_KEY, difficulty);
                         //Starting for the first song if it's a new game
                         editor.putString(SONG_KEY, getNewSongNum(songList.size()));
@@ -216,7 +216,7 @@ public class MainActivity extends AppCompatActivity {
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     public boolean hasProgress() {
         //Check if user has progress by checking if difficulty is stored
-        SharedPreferences prefs = getSharedPreferences(MainActivity.USER_PREFS, MODE_PRIVATE);
+        SharedPreferences prefs = getSharedPreferences(MainActivity.SESSION_PREFS, MODE_PRIVATE);
         return prefs.contains(DIFFICULTY_KEY);
     }
 

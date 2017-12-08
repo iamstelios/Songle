@@ -528,7 +528,6 @@ public class Downloader {
                 //Splits and returns only words
                 //splitting on not word characters, [-] and [']
                 //Note: first string is empty, and second is the line number
-                //I will leave it as it, not to use much processing power
                 words.add(line.split("[^\\w'-]+"));
             }
             scanner.close();
