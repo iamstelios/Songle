@@ -9,6 +9,9 @@ import java.util.Set;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+/**
+ * Tests that check the functionality of the generateNewSongNum function
+ */
 public class GenerateNewSongNumTest {
     private HashSet<String> populateSongsUsed(){
         HashSet<String> songsUsed = new HashSet<>();

@@ -651,10 +651,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             SharedPreferences global_prefs =
                                     getSharedPreferences(MainActivity.GLOBAL_PREFS, MODE_PRIVATE);
                             int totalGuessAttempts =
-                                    global_prefs.getInt(MainActivity.TOTAL_GUESS_ATTEMPTS, 0) + 1;
+                                    global_prefs.getInt(MainActivity.TOTAL_GUESS_ATTEMPTS_KEY, 0) + 1;
                             SharedPreferences.Editor global_editor =
                                     getSharedPreferences(MainActivity.GLOBAL_PREFS, MODE_PRIVATE).edit();
-                            global_editor.putInt(MainActivity.TOTAL_GUESS_ATTEMPTS, totalGuessAttempts);
+                            global_editor.putInt(MainActivity.TOTAL_GUESS_ATTEMPTS_KEY, totalGuessAttempts);
                             global_editor.apply();
                             // Everything in a song title that's after a parenthesis can be ignored
                             // This is to simplify titles that might have longer versions

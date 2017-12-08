@@ -45,7 +45,7 @@ public class findWordsFoundTest {
     }
 
     /**
-     * Test null Lyrics found behaviour
+     * Test null lyricsFound behaviour
      */
     @Test
     public void nullLyricsFoundTest(){

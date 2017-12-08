@@ -21,7 +21,6 @@ import android.widget.Toast;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Random;
 import java.util.Set;
 
 import static java.lang.Math.round;
@@ -42,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
     public static final String TOTAL_DIST_KEY = "total_distance_key";
     public static final String HIGHSCORE_KEY = "highscore_key";
     public static final String TOTAL_SONGS_FOUND_KEY = "total_songs_found_key";
-    public static final String TOTAL_GUESS_ATTEMPTS = "total_guess_attempts";
+    public static final String TOTAL_GUESS_ATTEMPTS_KEY = "total_guess_attempts";
     public static final String CURRENT_SONGS_FOUND_KEY = "current_songs_found";
     public static final String CURRENT_SONGS_SKIPPED_KEY = "current_songs_skipped";
     public static final String IS_MUSIC_ON_KEY = "is_music_on";
@@ -461,7 +460,7 @@ public class MainActivity extends AppCompatActivity {
                 int highscore = prefs.getInt(HIGHSCORE_KEY, 0);
                 int totalSongsFound = prefs.getInt(TOTAL_SONGS_FOUND_KEY, 0);
                 float totalDistance = prefs.getFloat(TOTAL_DIST_KEY, 0);
-                int totalGuessAttempts = prefs.getInt(TOTAL_GUESS_ATTEMPTS, 1);
+                int totalGuessAttempts = prefs.getInt(TOTAL_GUESS_ATTEMPTS_KEY, 1);
                 AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
                 builder.setTitle(R.string.stats);
                 String message =

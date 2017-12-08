@@ -4,7 +4,6 @@ package com.iamstelios.songle;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.support.test.espresso.NoMatchingViewException;
-import android.support.test.espresso.ViewInteraction;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
 import android.test.suitebuilder.annotation.LargeTest;
@@ -59,7 +58,7 @@ public class CompleteGameTest {
         SharedPreferences prefs = mActivityTestRule.getActivity()
                 .getSharedPreferences(MainActivity.GLOBAL_PREFS, Context.MODE_PRIVATE);
         int previousTotalSongsFound = prefs.getInt(MainActivity.TOTAL_SONGS_FOUND_KEY, 0);
-        int previousGuessAttempts = prefs.getInt(MainActivity.TOTAL_GUESS_ATTEMPTS, 0);
+        int previousGuessAttempts = prefs.getInt(MainActivity.TOTAL_GUESS_ATTEMPTS_KEY, 0);
 
         onView(
                 allOf(withId(R.id.NewGameButton), withContentDescription("New Game"), isDisplayed()))
@@ -142,7 +141,7 @@ public class CompleteGameTest {
                 .check(matches(not(isDisplayed())));
         //Check the saved stats
         int newTotalSongsFound = prefs.getInt(MainActivity.TOTAL_SONGS_FOUND_KEY, 0);
-        int newGuessAttempts = prefs.getInt(MainActivity.TOTAL_GUESS_ATTEMPTS, 0);
+        int newGuessAttempts = prefs.getInt(MainActivity.TOTAL_GUESS_ATTEMPTS_KEY, 0);
         assertTrue("Total songs found didn't increase",newTotalSongsFound>previousTotalSongsFound);
         assertTrue("Total guess attempts didn't increase",newGuessAttempts>previousGuessAttempts);
         assertTrue("Songs found and guess attempts didn't increase by the same amount",
