@@ -52,7 +52,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * Creates a new game from a fresh start.
  * Checks that the continue button is not present when there is no progress
- * and that it shows up after crating a new game.
+ * and that it shows up after creating a new game.
  * For the test to work correctly, these are the requirements:
  * - active internet connection
  * - location enabled

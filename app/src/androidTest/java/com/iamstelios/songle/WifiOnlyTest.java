@@ -40,12 +40,13 @@ public class WifiOnlyTest {
     public ActivityTestRule<MainActivity> mActivityTestRule = new ActivityTestRule<>(MainActivity.class, true, false);
 
     /**
-     * Checks that the app doesn't start a new game when there is not wifi
-     * and the data is enabled, but in the connection settings of the app
+     * Checks that the app doesn't start a new game when there is no WiFi
+     * and the data connection is enabled, but in the connection settings
+     * allows only connections over WiFi
      *
      * For the test to work correctly, these are the requirements:
      * - active data connection
-     * - wifi disabled
+     * - WiFi disabled
      * - permissions for location enabled
      */
     @Test

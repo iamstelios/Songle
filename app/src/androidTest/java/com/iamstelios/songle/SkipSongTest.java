@@ -40,9 +40,14 @@ public class SkipSongTest {
 
     /**
      * Checks when skipping a song:
-     * <p>Text view of skipped songs updated</p>
-     * <p>Song is changed</p>
-     * <p>Points are deducted</p>
+     * Text view of skipped songs updated
+     * Song is changed
+     * Points are deducted
+     *
+     * For the test to work correctly, these are the requirements:
+     * - active internet connection
+     * - location enabled
+     * - permissions for location enabled
      */
     @Test
     public void skipSongTest() {

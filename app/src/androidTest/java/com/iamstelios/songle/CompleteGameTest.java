@@ -46,7 +46,7 @@ public class CompleteGameTest {
 
     /**
      * Checks that the user is redirected to the MainActivity with no continue option
-     * and the global stats are updated correctly
+     * and the global stats are updated correctly, when completing the game
      *
      * For the test to work correctly, these are the requirements:
      * - active internet connection
