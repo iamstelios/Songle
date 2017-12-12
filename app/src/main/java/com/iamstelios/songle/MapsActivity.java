@@ -329,7 +329,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         editor.apply();
         //Check if highscore
         SharedPreferences prefs = getSharedPreferences(MainActivity.GLOBAL_PREFS, MODE_PRIVATE);
-        int highscore = prefs.getInt(MainActivity.HIGHSCORE_KEY, MainActivity.STARTING_POINTS);
+        int highscore = prefs.getInt(MainActivity.HIGHSCORE_KEY, 0);
         if (highscore < points) {
             //Update highscore
             Log.i(TAG, "New Highscore:" + points);

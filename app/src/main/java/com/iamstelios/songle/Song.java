@@ -51,8 +51,9 @@ public class Song {
 
     /**
      * Used to redirect the user to the video of the song he found
+     *
      * @param context Context
-     * @param link Link to video
+     * @param link    Link to video
      */
     public static void watchYoutubeVideo(Context context, String link) {
         Activity activity = (Activity) context;
@@ -141,7 +142,8 @@ public class Song {
 
     /**
      * Generate a new song number
-     * @param total Total number of songs
+     *
+     * @param total     Total number of songs
      * @param songsUsed Set of the
      * @return
      */
@@ -149,9 +151,9 @@ public class Song {
         String songNum;
         int min = 1;
         int max = total;
-        if(total<=songsUsed.size()){
+        if (total <= songsUsed.size()) {
             //Should never be the case as the program won't call this method if all songs used
-            Log.e(TAG,"Tried to generated new song number white the game is complete");
+            Log.e(TAG, "Tried to generated new song number white the game is complete");
             return "Game complete!";
         }
         do {
